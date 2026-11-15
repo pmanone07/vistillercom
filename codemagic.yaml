@@ -1,0 +1,57 @@
+# Codemagic: bygger iOS-appen (com.vistillercom.app) og sender den til TestFlight.
+#
+# Må settes opp i Codemagic før første bygg:
+#   1. Team settings → Integrations → App Store Connect: legg inn en API-nøkkel
+#      og gi den navnet «ViStiller» (eller endre navnet under `integrations`).
+#   2. Team settings → Code signing identities: last opp / generer et
+#      distribusjonssertifikat og en App Store-profil for com.vistillercom.app.
+#   3. Appen må finnes i App Store Connect med samme bundle-ID.
+#
+# Appen er et skall rundt https://vistiller.com (se capacitor.config.ts), så
+# bygget trenger ingen Supabase-nøkler.
+
+workflows:
+  ios-testflight:
+    name: iOS – TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: ViStiller
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.vistillercom.app
+      vars:
+        XCODE_PROJECT: ios/App/App.xcodeproj
+        XCODE_SCHEME: App
+      node: 22
+      xcode: latest
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: "ios-*"
+          include: true
+    scripts:
+      - name: Installer avhengigheter
+        script: npm ci
+      - name: Synkroniser Capacitor
+        script: npx cap sync ios
+      - name: Sett opp signering
+        script: xcode-project use-profiles
+      - name: Sett byggenummer
+        script: |
+          cd ios/App
+          agvtool new-version -all "$PROJECT_BUILD_NUMBER"
+      - name: Bygg ipa
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

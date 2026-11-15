@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>ViStiller</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 24px;
+        font-family: system-ui, sans-serif;
+        text-align: center;
+        color: #171717;
+      }
+      h1 { font-size: 20px; margin: 0; }
+      p { margin: 0; color: #6b6b6b; }
+      button {
+        margin-top: 12px;
+        height: 48px;
+        padding: 0 20px;
+        border: 0;
+        border-radius: 10px;
+        background: #0f6b50;
+        color: #fff;
+        font-size: 16px;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Reserve som vises i appen hvis vistiller.com ikke kan lastes. -->
+    <h1>Får ikke kontakt med ViStiller</h1>
+    <p>Sjekk at du er på nett, og prøv igjen.</p>
+    <button onclick="location.href = 'https://vistiller.com/dashboard'">Prøv igjen</button>
+  </body>
+</html>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ViStiller</string>
+    <string name="title_activity_main">ViStiller</string>
+    <string name="package_name">com.vistillercom.app</string>
+    <string name="custom_url_scheme">com.vistillercom.app</string>
+</resources>
