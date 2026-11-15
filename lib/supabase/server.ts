@@ -2,10 +2,15 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { createClient as createPlainClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { supabaseKey, supabaseUrl } from "./env";
 
 /** Klient for innloggede arrangører. Leser økten fra cookies, så RLS gjelder. */
 export async function createClient() {
+  // Supabase-klienten leser klokka (utløpstid på økten). Next 16 forhåndsrendrer
+  // også sider med brukerens cookies, og der er Date.now() ikke tillatt – så vi
+  // sier fra om at dette alltid skal kjøres per forespørsel.
+  await connection();
   const cookieStore = await cookies();
   return createServerClient(supabaseUrl, supabaseKey, {
     cookies: {

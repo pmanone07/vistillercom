@@ -26,5 +26,9 @@ export function messageFor(error: { message?: string } | null | undefined) {
   const code = error?.message?.match(/VS_[A-Z_]+/)?.[0];
   if (code && MESSAGES[code]) return MESSAGES[code];
   if (error?.message) console.error("[vistiller]", error.message);
+  // Under utvikling vises den tekniske årsaken, så feil er lette å finne.
+  if (process.env.NODE_ENV === "development" && error?.message) {
+    return `${GENERIC_ERROR} (${error.message})`;
+  }
   return GENERIC_ERROR;
 }

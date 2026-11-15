@@ -7,7 +7,7 @@ Next.js 16 (App Router) · React 19 · Supabase · Tailwind 4 · shadcn/ui
 ## Kom i gang
 
 1. Opprett et **nytt** Supabase-prosjekt. Skjemaet her bruker tabellnavn som kan kollidere med en eldre database (`organizations`, `events`, `signups`), så ikke kjør migreringen mot en database som allerede har data.
-2. Kjør begge filene i `supabase/migrations/` i SQL-editoren, i rekkefølge etter dato (eller `supabase db push`).
+2. Kjør alle filene i `supabase/migrations/` i SQL-editoren, i rekkefølge etter dato (eller `supabase db push`).
 3. Kopier `.env.example` til `.env.local` og fyll inn:
 
    | Variabel | Hva |

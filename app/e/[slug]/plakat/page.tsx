@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import QRCode from "qrcode";
 import { formatEventWhen } from "@/lib/format";
@@ -21,6 +22,7 @@ export default function PosterPage({ params }: PageProps<"/e/[slug]/plakat">) {
 
 async function Poster({ params }: Pick<PageProps<"/e/[slug]/plakat">, "params">) {
   const { slug } = await params;
+  await connection();
   const event = await getPublicEvent(slug);
   if (!event) notFound();
 

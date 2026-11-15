@@ -25,6 +25,11 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
 
+  // Bare sidevisninger omdirigeres. Server actions (POST) må få svare selv:
+  // de sjekker innlogging med requireUser() og sender brukeren til /login på
+  // en måte skjemaet forstår. En omdirigering her gir «unexpected response».
+  if (request.method !== "GET" && request.method !== "HEAD") return response;
+
   if (!data.user && pathname.startsWith("/dashboard")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

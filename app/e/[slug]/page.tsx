@@ -52,6 +52,7 @@ async function DynamicMarker() {
 
 async function Loader({ params }: Pick<PageProps<"/e/[slug]">, "params">) {
   const { slug } = await params;
+  await connection(); // ledige plasser skal alltid være ferske
   const event = await getPublicEvent(slug);
   if (!event) notFound();
   return <PublicEventView event={event} />;

@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { headers } from "next/headers";
+import { connection } from "next/server";
 import { isSupabaseConfigured, siteUrl } from "@/lib/supabase/env";
 import { createPublicClient } from "@/lib/supabase/server";
 import type { MySignups, PublicEvent } from "@/lib/types";
@@ -19,6 +20,7 @@ export const getPublicEvent = cache(async (slug: string): Promise<PublicEvent | 
 /** Det en gjest har meldt seg på, via det private tokenet. */
 export async function getMySignups(token: string): Promise<MySignups | null> {
   if (!isSupabaseConfigured || !TOKEN_PATTERN.test(token)) return null;
+  await connection(); // alltid ferske tall, aldri forhåndsrendret
   const { data, error } = await createPublicClient().rpc("get_my_signups", { p_token: token });
   if (error) throw new Error(error.message);
   return (data as MySignups | null) ?? null;
