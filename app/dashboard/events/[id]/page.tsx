@@ -5,7 +5,7 @@ import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SetupNotice } from "@/components/setup-notice";
 import { requireUser } from "@/lib/auth";
-import { getEventWithTasks } from "@/lib/data";
+import { getEventWithTasks, requireOrgAccess } from "@/lib/data";
 import { isSupabaseConfigured, siteUrl } from "@/lib/supabase/env";
 import { EventAdmin } from "./event-admin";
 
@@ -26,6 +26,7 @@ async function Loader({ params }: Pick<PageProps<"/dashboard/events/[id]">, "par
   await requireUser();
   const data = await getEventWithTasks(id);
   if (!data) notFound();
+  await requireOrgAccess(data.event.organization_id);
   return <EventAdmin {...data} siteUrl={siteUrl} />;
 }
 

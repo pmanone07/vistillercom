@@ -1,4 +1,7 @@
 import "server-only";
+import { redirect } from "next/navigation";
+import { isBillingEnabled } from "@/lib/billing";
+import { membershipIsActive, type MembershipFields } from "@/lib/membership";
 import { createClient } from "@/lib/supabase/server";
 import type { EventRow, Organization, SignupRow, TaskRow, TaskWithSignups } from "@/lib/types";
 
@@ -20,12 +23,29 @@ export interface EventSummary extends EventRow {
 
 export async function getOrganizations(): Promise<Organization[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("organizations")
-    .select("id, name, description")
-    .order("created_at", { ascending: true });
+  // Medlemskapskolonnene leses bare når betalingsmuren er på, så appen virker
+  // også før medlemskapsmigreringen er kjørt.
+  const columns = isBillingEnabled
+    ? "id, name, description, subscription_status, access_until, cancel_at_period_end, stripe_customer_id"
+    : "id, name, description";
+  const { data, error } = await supabase.from("organizations").select(columns).order("created_at", { ascending: true });
   if (error) throw new Error(error.message);
-  return data ?? [];
+
+  const now = Date.now();
+  type Row = Pick<Organization, "id" | "name" | "description"> & MembershipFields & { stripe_customer_id?: string | null };
+  return ((data ?? []) as unknown as Row[]).map(({ stripe_customer_id, ...org }) => ({
+    ...org,
+    hasAccess: !isBillingEnabled || membershipIsActive(org, now),
+    hasBillingAccount: Boolean(stripe_customer_id),
+  }));
+}
+
+/** Sender videre til medlemskapssiden hvis organisasjonen ikke har betalt tilgang. */
+export async function requireOrgAccess(organizationId: string) {
+  if (!isBillingEnabled) return;
+  const organizations = await getOrganizations();
+  const org = organizations.find((o) => o.id === organizationId);
+  if (!org?.hasAccess) redirect("/dashboard/medlemskap");
 }
 
 export interface OrgMember {

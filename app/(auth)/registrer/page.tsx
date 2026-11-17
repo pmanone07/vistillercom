@@ -1,17 +1,55 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { PricingCard } from "@/components/pricing-card";
+import { MEMBERSHIP } from "@/lib/membership";
 import { AuthForm } from "../auth-form";
 
-export const metadata: Metadata = { title: "Opprett konto" };
+export const metadata: Metadata = {
+  title: "Opprett konto",
+  description: `ViStiller for arrangører: ${MEMBERSHIP.priceLabel} ${MEMBERSHIP.intervalLabel} ${MEMBERSHIP.unitLabel}, ${MEMBERSHIP.vatLabel}. Deltakere melder seg på gratis.`,
+};
+
+const steps = [
+  "Opprett konto",
+  "Legg inn skolen, laget eller korpset",
+  `Betal ${MEMBERSHIP.priceLabel} ${MEMBERSHIP.vatLabel} for ett år`,
+];
 
 export default function RegisterPage() {
   return (
-    <>
-      <h1 className="text-xl font-bold">Opprett konto</h1>
-      <p className="mt-1 mb-5 text-sm text-muted-foreground">Gratis å komme i gang. Første arrangement er klart på få minutter.</p>
-      <Suspense>
-        <AuthForm mode="register" />
-      </Suspense>
-    </>
+    <div className="grid w-full max-w-4xl items-start gap-5 md:grid-cols-2">
+      {/* Skjemaet først på mobil, med prisen synlig rett over knappen. */}
+      <div className="rounded-2xl bg-card p-6 shadow-sm ring-1 ring-foreground/10">
+        <h1 className="text-xl font-bold">Opprett konto</h1>
+        <p className="mt-1 text-sm text-muted-foreground">For deg som arrangerer. Klart på få minutter.</p>
+
+        <ol className="my-5 space-y-2 text-sm">
+          {steps.map((step, index) => (
+            <li key={step} className="flex items-center gap-3">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                {index + 1}
+              </span>
+              {step}
+            </li>
+          ))}
+        </ol>
+
+        <div className="mb-5 rounded-xl bg-primary/5 p-3 text-sm ring-1 ring-primary/15">
+          <p className="font-semibold">
+            {MEMBERSHIP.priceLabel} {MEMBERSHIP.intervalLabel} {MEMBERSHIP.unitLabel}{" "}
+            <span className="font-normal text-muted-foreground">({MEMBERSHIP.vatLabel})</span>
+          </p>
+          <p className="text-muted-foreground">
+            Ingenting trekkes når du oppretter konto. Du betaler i steg 3, og kan si opp når som helst.
+          </p>
+        </div>
+
+        <Suspense>
+          <AuthForm mode="register" />
+        </Suspense>
+      </div>
+
+      <PricingCard className="shadow-sm" />
+    </div>
   );
 }

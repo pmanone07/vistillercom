@@ -2,6 +2,8 @@
 
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
+import { isBillingEnabled } from "@/lib/billing";
+import { membershipIsActive } from "@/lib/membership";
 import { messageFor, NOT_CONFIGURED } from "@/lib/errors";
 import { fromLocalInput, toLocalDate, toLocalTime } from "@/lib/format";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -17,6 +19,19 @@ async function authed() {
 
 function fail(error: string): { ok: false; error: string } {
   return { ok: false, error };
+}
+
+const NO_MEMBERSHIP = "Organisasjonen har ikke aktivt medlemskap. Gå til «Medlemskap» for å betale.";
+
+/** Betalingsmur på serveren: sjekkes på nytt her, ikke bare i skjermbildene. */
+async function orgHasAccess(supabase: Awaited<ReturnType<typeof createClient>>, organizationId: string) {
+  if (!isBillingEnabled) return true;
+  const { data } = await supabase
+    .from("organizations")
+    .select("subscription_status, access_until")
+    .eq("id", organizationId)
+    .maybeSingle();
+  return data ? membershipIsActive(data, Date.now()) : false;
 }
 
 const id = z.uuid();
@@ -126,6 +141,7 @@ export async function saveEvent(input: EventInput): Promise<ActionResult<{ id: s
   const supabase = await authed();
 
   if (!v.id) {
+    if (!(await orgHasAccess(supabase, v.organizationId))) return fail(NO_MEMBERSHIP);
     const { data, error } = await supabase
       .from("events")
       .insert({ organization_id: v.organizationId, ...fields })
@@ -137,10 +153,11 @@ export async function saveEvent(input: EventInput): Promise<ActionResult<{ id: s
 
   const { data: before, error: readError } = await supabase
     .from("events")
-    .select("starts_at")
+    .select("starts_at, organization_id")
     .eq("id", v.id)
     .maybeSingle();
   if (readError || !before) return fail("Fant ikke arrangementet.");
+  if (!(await orgHasAccess(supabase, before.organization_id))) return fail(NO_MEMBERSHIP);
 
   const { error } = await supabase.from("events").update(fields).eq("id", v.id);
   if (error) return fail(messageFor(error));
@@ -198,6 +215,13 @@ export async function copyEvent(input: {
   if (!startsAt) return fail("Velg ny dato og klokkeslett.");
 
   const supabase = await authed();
+  const { data: source } = await supabase
+    .from("events")
+    .select("organization_id")
+    .eq("id", parsed.data.eventId)
+    .maybeSingle();
+  if (!source) return fail("Fant ikke arrangementet.");
+  if (!(await orgHasAccess(supabase, source.organization_id))) return fail(NO_MEMBERSHIP);
   const { data, error } = await supabase.rpc("copy_event", {
     p_event_id: parsed.data.eventId,
     p_title: parsed.data.title,
@@ -229,8 +253,13 @@ export async function saveTask(input: TaskInput): Promise<ActionResult> {
   if (v.startTime && v.endTime && v.endTime <= v.startTime) return fail("Slutt må være etter start.");
 
   const supabase = await authed();
-  const { data: event } = await supabase.from("events").select("starts_at").eq("id", v.eventId).maybeSingle();
+  const { data: event } = await supabase
+    .from("events")
+    .select("starts_at, organization_id")
+    .eq("id", v.eventId)
+    .maybeSingle();
   if (!event) return fail("Fant ikke arrangementet.");
+  if (!(await orgHasAccess(supabase, event.organization_id))) return fail(NO_MEMBERSHIP);
 
   // Klokkeslettene gjelder arrangementsdagen (norsk tid).
   const date = toLocalDate(event.starts_at);

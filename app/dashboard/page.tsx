@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { CalendarDays, CalendarPlus, ChevronRight, MapPin } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -25,6 +26,9 @@ async function Overview() {
   await requireUser();
   const [organizations, events] = await Promise.all([getOrganizations(), getEventSummaries()]);
   if (organizations.length === 0) return <Onboarding />;
+  // Betalingsmur: uten aktivt medlemskap i noen organisasjon går man til betaling.
+  if (!organizations.some((o) => o.hasAccess)) redirect("/dashboard/medlemskap");
+  const unpaid = organizations.filter((o) => !o.hasAccess);
 
   const upcoming = events.filter((e) => !e.over);
   const past = events.filter((e) => e.over).reverse();
@@ -40,6 +44,18 @@ async function Overview() {
         <h1 className="text-2xl font-bold tracking-tight">{showOrg ? "Dine arrangementer" : organizations[0].name}</h1>
         <p className="text-sm text-muted-foreground">Oversikt over arrangementer og hvem som stiller.</p>
       </div>
+
+      {unpaid.length > 0 && (
+        <Link
+          href="/dashboard/medlemskap"
+          className="flex items-center gap-3 rounded-2xl bg-amber-50 p-4 text-sm text-amber-950 ring-1 ring-amber-200"
+        >
+          <span className="flex-1">
+            <span className="font-semibold">{unpaid.map((o) => o.name).join(", ")}</span> mangler aktivt medlemskap.
+          </span>
+          <ChevronRight className="size-5 shrink-0" aria-hidden />
+        </Link>
+      )}
 
       <dl className="grid grid-cols-3 gap-3">
         <Stat label="Kommende" value={upcoming.length} />

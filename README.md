@@ -16,7 +16,7 @@ Next.js 16 (App Router) · React 19 · Supabase · Tailwind 4 · shadcn/ui
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable/anon-nøkkel |
    | `NEXT_PUBLIC_SITE_URL` | F.eks. `https://vistiller.com` |
 
-   Appen bruker **ikke** secret/service-role-nøkkelen. Ikke legg den inn noe sted.
+   Disse tre er offentlige. De hemmelige nøklene for betaling står under «Medlemskap og betaling».
 4. I Supabase → Authentication → URL Configuration: sett Site URL, og legg til `https://DITT-DOMENE/auth/callback` (og `http://localhost:3000/auth/callback`) under Redirect URLs.
 5. `npm install` og `npm run dev`.
 
@@ -44,6 +44,31 @@ De samme tre variablene må legges inn i Vercel (Production og Preview).
 | `/e/[slug]/plakat` | Alle | Utskriftsvennlig plakat med QR-kode |
 | `/b/[token]` | Deltaker | Mine bidrag – privat lenke (Sticky Pages som faner) |
 
+### Medlemskap og betaling (Stripe)
+
+Arrangører betaler 499 kr per år per organisasjon, inkludert mva. Deltakere betaler aldri.
+
+Mva: 499 kr er sluttprisen. Prisen sendes til Stripe som «avgift inkludert» (`tax_behavior: inclusive`), så Stripe legger aldri noe oppå. Skal mva-andelen stå spesifisert på kvitteringen, sett opp Stripe Tax med norsk mva-registrering og legg inn `STRIPE_AUTOMATIC_TAX=true`. Pris og vilkår står i `lib/membership.ts` og vises på `/registrer`, `/dashboard/medlemskap` og forsiden.
+
+Betalingsmuren er **av** til nøklene under er satt, slik at ingen låses ute før betaling faktisk virker. Slik slår du den på:
+
+1. Kjør `supabase/migrations/20261118000000_membership.sql` i SQL-editoren.
+2. Legg inn disse som **hemmelige** miljøvariabler (lokalt i `.env.local`, og i Vercel – ikke med `NEXT_PUBLIC_`):
+
+   | Variabel | Hvor du finner den |
+   |---|---|
+   | `STRIPE_SECRET_KEY` | Stripe → Developers → API keys |
+   | `STRIPE_WEBHOOK_SECRET` | Stripe → Developers → Webhooks → endepunktet → Signing secret |
+   | `SUPABASE_SECRET_KEY` | Supabase → Project Settings → API → secret key |
+   | `STRIPE_PRICE_ID` (valgfri) | En pris du har laget selv i Stripe. Tom = 499 kr/år lages automatisk |
+
+3. Lag et webhook-endepunkt i Stripe som peker på `https://www.vistiller.com/api/stripe/webhook`, med hendelsene `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated` og `customer.subscription.deleted`.
+4. Slå på kundeportalen i Stripe (Settings → Billing → Customer portal), så «Administrer abonnement» virker.
+
+Flyten: `/registrer` → opprett organisasjon → `/dashboard/medlemskap` → Stripe Checkout → tilbake, og tilgangen er aktiv. Uten aktivt medlemskap sendes arrangøren til medlemskapssiden, og serveren avviser oppretting og endring av arrangementer og oppgaver. Offentlige påmeldingslenker fortsetter å virke.
+
+Sperren håndheves av ViStiller-serveren, ikke av databasen (RLS).
+
 ### Mobil
 
 - **PWA:** `app/manifest.ts` og ikonene i `public/icons/` gjør at appen kan legges til på hjemskjermen. `public/sw.js` viser `/offline` når nettet mangler; ingenting annet bufres.
@@ -60,6 +85,7 @@ De samme tre variablene må legges inn i Vercel (Production og Preview).
 - **Arrangører** jobber direkte mot tabellene. Row Level Security slipper dem bare til organisasjoner de er medlem av.
 - **Deltakere** har ingen tabelltilgang. De går gjennom fire databasefunksjoner (`get_public_event`, `signup_for_task`, `get_my_signups`, `cancel_my_signup`) som aldri gir ut e-post eller tokens.
 - **Kapasitet** håndheves i databasen: oppgaven låses (`FOR UPDATE`) før plassene telles, så to kan ikke ta den siste plassen samtidig.
+- **Servernøkkelen** (`SUPABASE_SECRET_KEY`) leses bare i `lib/billing.ts` og brukes kun til å kalle `set_org_membership` når Stripe har bekreftet en betaling.
 - **Gjester** får et privat token. Bare SHA-256-hashen lagres, og arrangører kan ikke lese den.
 - Navn på påmeldte vises til alle med lenken. E-post vises bare til arrangøren.
 

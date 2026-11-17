@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, bigInput } from "@/components/field";
+import { MEMBERSHIP } from "@/lib/membership";
 import { createOrganization } from "./actions";
 
 export function Onboarding() {
@@ -30,7 +31,8 @@ export function Onboarding() {
     <div className="mx-auto max-w-md rounded-2xl bg-background p-6 ring-1 ring-foreground/10">
       <h1 className="text-xl font-bold">Velkommen til ViStiller</h1>
       <p className="mt-1 mb-5 text-sm text-muted-foreground">
-        Hvem arrangerer du for? Navnet vises til dem som melder seg på.
+        Hvem arrangerer du for? Navnet vises til dem som melder seg på. Medlemskapet ({MEMBERSHIP.priceLabel}{" "}
+        {MEMBERSHIP.intervalLabel}, {MEMBERSHIP.vatLabel}) gjelder denne organisasjonen, og betales i neste steg.
       </p>
       <form onSubmit={submit} className="space-y-4">
         <Field label="Skole, lag, korps eller gruppe" htmlFor="org-name" hint="For eksempel «Strindheim skole FAU» eller «Ranheim IL».">

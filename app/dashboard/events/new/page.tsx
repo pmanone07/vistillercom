@@ -26,5 +26,8 @@ async function Loader() {
   await requireUser();
   const organizations = await getOrganizations();
   if (organizations.length === 0) redirect("/dashboard");
-  return <EventForm organizations={organizations} />;
+  // Bare organisasjoner med aktivt medlemskap kan opprette arrangementer.
+  const active = organizations.filter((o) => o.hasAccess);
+  if (active.length === 0) redirect("/dashboard/medlemskap");
+  return <EventForm organizations={active} />;
 }

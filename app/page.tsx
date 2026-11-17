@@ -3,6 +3,7 @@ import { ClipboardList, GraduationCap, HeartHandshake, Link2, Music, Trophy, Use
 import { buttonVariants } from "@/components/ui/button";
 import { StickyPages, type StickyPageItem } from "@/components/ui/sticky-pages";
 import { Logo } from "@/components/logo";
+import { MEMBERSHIP } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { ScrollDownButton } from "./scroll-down-button";
 
@@ -137,10 +138,19 @@ const pages: StickyPageItem[] = [
       <div className="flex h-full flex-col text-primary-foreground">
         <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-5 text-center">
           <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-5xl">
-            Klart på få minutter. Gratis å komme i gang.
+            Klart på få minutter.
           </h2>
           <p className="mt-4 max-w-md text-lg text-primary-foreground/85">
             Opprett et arrangement, del lenken, og la folk velge hva de vil bidra med.
+          </p>
+          <p className="mt-6 rounded-2xl bg-primary-foreground/10 px-5 py-3 text-primary-foreground">
+            <span className="text-2xl font-bold tabular-nums">{MEMBERSHIP.priceLabel}</span>{" "}
+            <span className="text-primary-foreground/85">
+              {MEMBERSHIP.intervalLabel} {MEMBERSHIP.unitLabel}
+            </span>
+            <span className="block text-sm text-primary-foreground/75">
+              Prisen er {MEMBERSHIP.vatLabel}. Deltakere melder seg på gratis.
+            </span>
           </p>
           <Link
             href="/dashboard/events/new"

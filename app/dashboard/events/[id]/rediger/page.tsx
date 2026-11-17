@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,5 +29,6 @@ async function Loader({ params }: Pick<PageProps<"/dashboard/events/[id]/rediger
   await requireUser();
   const [data, organizations] = await Promise.all([getEventWithTasks(id), getOrganizations()]);
   if (!data) notFound();
+  if (!organizations.find((o) => o.id === data.event.organization_id)?.hasAccess) redirect("/dashboard/medlemskap");
   return <EventForm organizations={organizations} event={data.event} />;
 }

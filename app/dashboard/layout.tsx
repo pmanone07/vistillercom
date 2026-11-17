@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LogOut, Plus, Settings } from "lucide-react";
+import { CreditCard, LogOut, Plus, Settings } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { signOut } from "../(auth)/actions";
@@ -19,6 +19,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-1">
             <Link href="/dashboard/events/new" className={buttonVariants({ size: "lg" })}>
               <Plus /> <span className="max-sm:sr-only">Nytt arrangement</span>
+            </Link>
+            <Link
+              href="/dashboard/medlemskap"
+              className={buttonVariants({ variant: "ghost", size: "lg" })}
+              aria-label="Medlemskap"
+            >
+              <CreditCard /> <span className="max-md:sr-only">Medlemskap</span>
             </Link>
             <Link
               href="/dashboard/innstillinger"

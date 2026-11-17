@@ -269,6 +269,36 @@ await test("flere administratorer: legge til, tilgang, fjerne og siste eier", as
   });
 });
 
+await test("medlemskap: bare serveren kan sette det, medlemmer kan lese", async () => {
+  const args = `$1, 'cus_1', 'sub_1', 'active', now() + interval '1 year', false`;
+  await asUser(ANNA, async () => {
+    await expectError(db.query(`select public.set_org_membership(${args})`, [orgId]), /permission denied/);
+    await expectError(
+      db.query(`update public.organizations set subscription_status = 'active', access_until = now() + interval '9 years' where id = $1`, [orgId]),
+      /permission denied/,
+    );
+    const before = (await db.query(`select subscription_status, access_until from public.organizations where id = $1`, [orgId])).rows[0];
+    assert.equal(before.subscription_status, null);
+    assert.equal(before.access_until, null);
+  });
+  await asAnon(() => expectError(db.query(`select public.set_org_membership(${args})`, [orgId]), /permission denied/));
+
+  await as("service_role", null, async () => {
+    await db.query(`select public.set_org_membership(${args})`, [orgId]);
+    // Senere hendelser fra Stripe kjenner bare abonnementet, ikke organisasjonen.
+    await db.query(`select public.set_org_membership(null, null, 'sub_1', 'active', now() + interval '1 year', true)`);
+    await expectError(db.query(`select public.set_org_membership(null, null, 'sub_ukjent', 'active', now(), false)`), /VS_NOT_FOUND/);
+  });
+  await asUser(ANNA, async () => {
+    const row = (await db.query(
+      `select stripe_customer_id, subscription_status, cancel_at_period_end, access_until > now() as has_access
+       from public.organizations where id = $1`,
+      [orgId],
+    )).rows[0];
+    assert.deepEqual(row, { stripe_customer_id: "cus_1", subscription_status: "active", cancel_at_period_end: true, has_access: true });
+  });
+});
+
 await test("arkivert arrangement er ikke lenger offentlig", async () => {
   await asUser(ANNA, () => db.query(`update public.events set status = 'archived' where id = $1`, [eventId]));
   await asAnon(async () => {

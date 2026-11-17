@@ -4,6 +4,14 @@ export interface Organization {
   id: string;
   name: string;
   description: string | null;
+  /** Kan organisasjonen bruke ViStiller nå? Alltid true når betalingsmuren er av. */
+  hasAccess: boolean;
+  // Medlemskapsfeltene finnes bare når betalingsmuren er på.
+  subscription_status?: string | null;
+  access_until?: string | null;
+  cancel_at_period_end?: boolean;
+  /** Finnes det en Stripe-kunde (kan åpne «Administrer abonnement»)? */
+  hasBillingAccount?: boolean;
 }
 
 export interface EventRow {
