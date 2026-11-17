@@ -39,6 +39,10 @@ export async function startCheckout(organizationId: string): Promise<ActionResul
       mode: "subscription",
       line_items: [membershipLineItem()],
       locale: "nb",
+      // Vanlig betaling: ViStiller er selger, og kunden betaler nøyaktig prisen.
+      // Stripe-kontoen har Managed Payments (Stripe som selger) på som standard,
+      // og det krever avgiftskode på produktet – så det slås av for disse kjøpene.
+      managed_payments: { enabled: false },
       // Gjenbruk Stripe-kunden hvis organisasjonen har hatt medlemskap før.
       ...(org.stripe_customer_id ? { customer: org.stripe_customer_id } : { customer_email: user.email }),
       // Mva er inkludert i prisen. Med Stripe Tax påslått spesifiseres mva-andelen på kvitteringen.
