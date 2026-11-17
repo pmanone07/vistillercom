@@ -79,7 +79,9 @@ export async function syncSubscription(subscription: Stripe.Subscription, organi
     p_subscription_id: subscription.id,
     p_status: subscription.status,
     p_access_until: accessUntil,
-    p_cancel_at_period_end: subscription.cancel_at_period_end,
+    // Oppsigelse meldes på to måter: eldre flagg (cancel_at_period_end) eller,
+    // fra kundeportalen, en sluttdato (cancel_at). Begge betyr «fornyes ikke».
+    p_cancel_at_period_end: subscription.cancel_at_period_end || subscription.cancel_at != null,
   });
   if (error) throw new Error(`set_org_membership: ${error.message}`);
 }
