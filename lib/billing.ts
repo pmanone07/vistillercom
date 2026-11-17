@@ -6,7 +6,13 @@ import { supabaseUrl } from "@/lib/supabase/env";
 
 // Hemmelige nøkler. Leses bare her, på serveren, og sendes aldri til nettleseren.
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY ?? "";
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+// NEXT_SUPABASE_SECRET_KEY godtas også, siden det er navnet som ligger i Vercel.
+// (Bare NEXT_PUBLIC_-variabler havner i nettleseren, så dette er fortsatt hemmelig.)
+const supabaseSecretKey =
+  process.env.SUPABASE_SECRET_KEY ??
+  process.env.NEXT_SUPABASE_SECRET_KEY ??
+  process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  "";
 export const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 
 /**
