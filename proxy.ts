@@ -3,11 +3,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured, supabaseKey, supabaseUrl } from "@/lib/supabase/env";
 
 // Fornyer Supabase-økten og sender ikke-innloggede bort fra dashbordet.
+// /start er inngangen til appene (Capacitor og PWA): innloggede går rett til
+// dashbordet, andre får forsiden med informasjon om ViStiller.
 // Selve tilgangskontrollen ligger i RLS og i requireUser() – dette er bare
 // en rask første sjekk.
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
-  if (!isSupabaseConfigured) return response;
+  if (!isSupabaseConfigured) {
+    return request.nextUrl.pathname === "/start" ? redirectTo(request, "/") : response;
+  }
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
@@ -30,6 +34,7 @@ export async function proxy(request: NextRequest) {
   // en måte skjemaet forstår. En omdirigering her gir «unexpected response».
   if (request.method !== "GET" && request.method !== "HEAD") return response;
 
+  if (pathname === "/start") return redirectTo(request, data.user ? "/dashboard" : "/");
   if (!data.user && pathname.startsWith("/dashboard")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
@@ -45,6 +50,13 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
+function redirectTo(request: NextRequest, pathname: string) {
+  const url = request.nextUrl.clone();
+  url.pathname = pathname;
+  url.search = "";
+  return NextResponse.redirect(url);
+}
+
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/registrer"],
+  matcher: ["/start", "/dashboard/:path*", "/login", "/registrer"],
 };

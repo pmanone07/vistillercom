@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "ViStiller",
     description: "Planlegg dugnader og arrangementer, fordel oppgaver og få folk til å stille opp.",
     lang: "nb",
-    start_url: "/dashboard",
+    start_url: "/start",
     scope: "/",
     display: "standalone",
     orientation: "portrait",

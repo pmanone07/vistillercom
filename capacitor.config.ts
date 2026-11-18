@@ -11,7 +11,7 @@ const config: CapacitorConfig = {
   // Vises bare hvis nettsiden ikke kan lastes (se capacitor-web/index.html).
   webDir: "capacitor-web",
   server: {
-    url: "https://vistiller.com/dashboard",
+    url: "https://vistiller.com/start",
     // Lenker til vistiller.com åpnes i appen, alt annet i nettleseren.
     allowNavigation: ["vistiller.com", "*.vistiller.com"],
     cleartext: false,
