@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { useAutoRefresh } from "@/components/public/use-auto-refresh";
 import { StaffingBar } from "@/components/staffing";
 import { formatEventWhen, formatTimeRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,28 @@ export function EventAdmin({ event, organizationName, tasks, siteUrl }: Props) {
   const [taskDraft, setTaskDraft] = useState<TaskDraft | null>(null);
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const [statusPending, startStatus] = useTransition();
+
+  // Henter ferske påmeldinger hvert 8. sekund (og med en gang fanen blir aktiv
+  // igjen), så listen følger med uten at siden må lastes på nytt. Pauser mens
+  // en dialog er åpen, slik at ingenting flytter seg under redigering.
+  const dialogOpen = shareOpen || copyOpen || taskDraft !== null || confirm !== null;
+  useAutoRefresh(8_000, !dialogOpen);
+
+  // Si fra når noen nye har meldt seg på siden sist.
+  const knownSignups = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const current = new Map<string, string>();
+    for (const task of tasks) {
+      for (const signup of task.signups) current.set(signup.id, `${signup.participant_name} → ${task.title}`);
+    }
+    const known = knownSignups.current;
+    if (known) {
+      const added = [...current.entries()].filter(([id]) => !known.has(id)).map(([, label]) => label);
+      if (added.length === 1) toast.success(`Ny påmelding: ${added[0]}`);
+      else if (added.length > 1) toast.success(`${added.length} nye påmeldinger`, { description: added.slice(0, 5).join(" · ") });
+    }
+    knownSignups.current = new Set(current.keys());
+  }, [tasks]);
 
   const isOpen = event.status === "open";
   const capacity = tasks.reduce((sum, t) => sum + t.capacity, 0);
@@ -165,7 +188,16 @@ export function EventAdmin({ event, organizationName, tasks, siteUrl }: Props) {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Oppgaver</h2>
+          <div>
+            <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Oppgaver</h2>
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="relative flex size-2" aria-hidden>
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                <span className="relative inline-flex size-2 rounded-full bg-emerald-600" />
+              </span>
+              Oppdateres automatisk
+            </p>
+          </div>
           <Button onClick={() => setTaskDraft({})} className="h-10">
             <Plus /> Ny oppgave
           </Button>

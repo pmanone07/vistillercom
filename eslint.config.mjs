@@ -12,6 +12,14 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Native prosjekter og andre kopier som ligger i mappen, men ikke er en del av nettappen.
+    "android/**",
+    "ios/**",
+    "vistillerappen/**",
+    "vistiller/**",
+    "vistillercom/**",
+    "vistillercom2/**",
+    "MyApplication/**",
   ]),
 ]);
 

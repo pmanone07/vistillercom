@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { CalendarDays, CalendarPlus, ChevronRight, MapPin } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { SetupNotice } from "@/components/setup-notice";
 import { StaffingBar } from "@/components/staffing";
 import { requireUser } from "@/lib/auth";
@@ -40,6 +41,8 @@ async function Overview() {
 
   return (
     <div className="space-y-8">
+      {/* Bemanningstallene følger med når folk melder seg på. */}
+      <AutoRefresh intervalMs={20_000} />
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{showOrg ? "Dine arrangementer" : organizations[0].name}</h1>
         <p className="text-sm text-muted-foreground">Oversikt over arrangementer og hvem som stiller.</p>

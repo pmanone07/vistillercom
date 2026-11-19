@@ -41,7 +41,12 @@ yarn-error.log*
 # er Capacitor-prosjektet i /android.
 /vistiller/
 /vistillercom2/
+/vistillercom/
+/MyApplication/
 .idea/
+
+# Egen klone av repoet (Android-bygg). Holdes utenfor – skal ikke røres herfra.
+/vistillerappen/
 
 # typescript
 *.tsbuildinfo
