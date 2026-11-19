@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import {
   MapPin,
   Pencil,
   Plus,
+  RefreshCw,
   Share2,
   Trash2,
   UserPlus,
@@ -24,12 +25,11 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { useAutoRefresh } from "@/components/public/use-auto-refresh";
 import { StaffingBar } from "@/components/staffing";
 import { formatEventWhen, formatTimeRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { EventRow, SignupRow, TaskWithSignups } from "@/lib/types";
-import { addSignup, deleteEvent, deleteTask, removeSignup, setEventStatus } from "../../actions";
+import { addSignup, deleteEvent, deleteTask, loadEventTasks, removeSignup, setEventStatus } from "../../actions";
 import { CopyDialog } from "./copy-dialog";
 import { ShareDialog } from "./share-dialog";
 import { TaskDialog, type TaskDraft } from "./task-dialog";
@@ -48,7 +48,7 @@ type Confirm =
   | { kind: "delete-task"; task: TaskWithSignups }
   | { kind: "remove-signup"; signup: SignupRow; taskTitle: string };
 
-export function EventAdmin({ event, organizationName, tasks, siteUrl }: Props) {
+export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUrl }: Props) {
   const router = useRouter();
   const [shareOpen, setShareOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
@@ -56,11 +56,57 @@ export function EventAdmin({ event, organizationName, tasks, siteUrl }: Props) {
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const [statusPending, startStatus] = useTransition();
 
-  // Henter ferske påmeldinger hvert 8. sekund (og med en gang fanen blir aktiv
-  // igjen), så listen følger med uten at siden må lastes på nytt. Pauser mens
-  // en dialog er åpen, slik at ingenting flytter seg under redigering.
+  // Oppgavene med påmeldte holdes i egen tilstand, slik at listen kan hentes
+  // direkte fra serveren uten å laste hele siden på nytt.
+  const [tasks, setTasks] = useState(serverTasks);
+  const [lastServerTasks, setLastServerTasks] = useState(serverTasks);
+  if (serverTasks !== lastServerTasks) {
+    // Siden er lastet på nytt (f.eks. etter egne endringer): bruk de nye dataene.
+    setLastServerTasks(serverTasks);
+    setTasks(serverTasks);
+  }
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const syncBusy = useRef(false);
+
+  const sync = useCallback(
+    async (manual: boolean) => {
+      if (syncBusy.current) return;
+      syncBusy.current = true;
+      if (manual) setSyncing(true);
+      try {
+        const result = await loadEventTasks(event.id);
+        if (result.ok) {
+          setTasks(result.data);
+          setLastSynced(new Date());
+        } else if (manual) {
+          toast.error(result.error);
+        }
+      } catch {
+        if (manual) toast.error("Fikk ikke hentet listen. Sjekk nettforbindelsen.");
+      } finally {
+        syncBusy.current = false;
+        if (manual) setSyncing(false);
+      }
+    },
+    [event.id],
+  );
+
+  // Henter ferske påmeldinger hvert 8. sekund, og med en gang fanen blir aktiv
+  // igjen. Pauser mens en dialog er åpen, så ingenting flytter seg under redigering.
   const dialogOpen = shareOpen || copyOpen || taskDraft !== null || confirm !== null;
-  useAutoRefresh(8_000, !dialogOpen);
+  useEffect(() => {
+    if (dialogOpen) return;
+    const tick = () => {
+      if (document.visibilityState === "visible") void sync(false);
+    };
+    const timer = window.setInterval(tick, 8_000);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [sync, dialogOpen]);
 
   // Si fra når noen nye har meldt seg på siden sist.
   const knownSignups = useRef<Set<string> | null>(null);
@@ -188,18 +234,24 @@ export function EventAdmin({ event, organizationName, tasks, siteUrl }: Props) {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Oppgaver</h2>
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="relative flex size-2" aria-hidden>
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
-                <span className="relative inline-flex size-2 rounded-full bg-emerald-600" />
-              </span>
-              Oppdateres automatisk
-            </p>
-          </div>
+          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Oppgaver</h2>
           <Button onClick={() => setTaskDraft({})} className="h-10">
             <Plus /> Ny oppgave
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-background px-3 py-2 ring-1 ring-foreground/10">
+          <p className="flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
+            <span className="relative flex size-2" aria-hidden>
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+              <span className="relative inline-flex size-2 rounded-full bg-emerald-600" />
+            </span>
+            {lastSynced
+              ? `Oppdateres automatisk · sist ${lastSynced.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
+              : "Oppdateres automatisk"}
+          </p>
+          <Button variant="outline" onClick={() => sync(true)} disabled={syncing} className="h-9">
+            <RefreshCw className={cn(syncing && "animate-spin")} /> Oppdater liste
           </Button>
         </div>
 

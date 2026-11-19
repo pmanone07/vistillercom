@@ -8,7 +8,8 @@ import { messageFor, NOT_CONFIGURED } from "@/lib/errors";
 import { fromLocalInput, toLocalDate, toLocalTime } from "@/lib/format";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
-import type { ActionResult, EventStatus } from "@/lib/types";
+import { getEventWithTasks } from "@/lib/data";
+import type { ActionResult, EventStatus, TaskWithSignups } from "@/lib/types";
 
 // Hver action verifiserer innlogging selv. Hva brukeren faktisk får gjøre,
 // avgjøres av RLS i databasen – ikke av det klienten sender inn.
@@ -298,6 +299,17 @@ export async function deleteTask(taskId: string): Promise<ActionResult> {
   const { error } = await supabase.from("tasks").delete().eq("id", taskId);
   if (error) return fail(messageFor(error));
   return { ok: true, data: undefined };
+}
+
+/** Ferske oppgaver med påmeldte, for automatisk oppdatering av arrangementsiden. */
+export async function loadEventTasks(eventId: string): Promise<ActionResult<TaskWithSignups[]>> {
+  if (!isSupabaseConfigured) return fail(NOT_CONFIGURED);
+  if (!id.safeParse(eventId).success) return fail("Ugyldig forespørsel.");
+  await requireUser();
+  // RLS gir null hvis brukeren ikke er medlem av organisasjonen.
+  const data = await getEventWithTasks(eventId);
+  if (!data) return fail("Fant ikke arrangementet.");
+  return { ok: true, data: data.tasks };
 }
 
 // --- Påmeldinger (lagt inn eller fjernet av arrangøren) ----------------------
