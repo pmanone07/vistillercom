@@ -52,7 +52,11 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       </Button>
       {!isLogin && (
         <p className="text-center text-xs text-muted-foreground">
-          Les om hvordan vi behandler opplysningene dine i{" "}
+          Ved å opprette konto godtar du{" "}
+          <Link href="/vilkar" className="font-medium text-primary underline-offset-4 hover:underline">
+            brukervilkårene
+          </Link>
+          . Les også{" "}
           <Link href="/personvern" className="font-medium text-primary underline-offset-4 hover:underline">
             personvernerklæringen
           </Link>

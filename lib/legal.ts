@@ -7,6 +7,7 @@ export const CONTROLLER_NAME = "";
 export const CONTACT_EMAIL = "the.pman07@gmail.com";
 
 export const PRIVACY_UPDATED = "22. november 2026";
+export const TERMS_UPDATED = "22. november 2026";
 
 export const deletionMailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Sletting av ViStiller-konto")}`;
 export const privacyMailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Personvern i ViStiller")}`;

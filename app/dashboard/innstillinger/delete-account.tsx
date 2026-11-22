@@ -50,6 +50,9 @@ export function AccountSettings({ email, plan, contactEmail }: Props) {
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <Link href="/vilkar" className="font-medium text-primary underline-offset-4 hover:underline">
+          Brukervilkår
+        </Link>
         <Link href="/personvern" className="font-medium text-primary underline-offset-4 hover:underline">
           Personvernerklæring
         </Link>
