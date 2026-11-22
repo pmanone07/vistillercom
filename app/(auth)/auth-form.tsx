@@ -50,6 +50,15 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
         {pending && <Loader2 className="animate-spin" />}
         {isLogin ? "Logg inn" : "Opprett konto"}
       </Button>
+      {!isLogin && (
+        <p className="text-center text-xs text-muted-foreground">
+          Les om hvordan vi behandler opplysningene dine i{" "}
+          <Link href="/personvern" className="font-medium text-primary underline-offset-4 hover:underline">
+            personvernerklæringen
+          </Link>
+          .
+        </p>
+      )}
       <p className="text-center text-sm text-muted-foreground">
         {isLogin ? "Har du ikke konto? " : "Har du konto fra før? "}
         <Link

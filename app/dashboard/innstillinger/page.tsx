@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SetupNotice } from "@/components/setup-notice";
 import { requireUser } from "@/lib/auth";
 import { getOrgMembers, getOrganizations } from "@/lib/data";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { getDeletionPlan } from "@/lib/account";
+import { CONTACT_EMAIL } from "@/lib/legal";
+import { AccountSettings } from "./delete-account";
 import { OrganizationSettings } from "./organization-settings";
 
 export const metadata: Metadata = { title: "Innstillinger" };
@@ -16,7 +18,7 @@ export default function SettingsPage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Innstillinger</h1>
-        <p className="text-sm text-muted-foreground">Navn på organisasjonen og hvem som kan administrere.</p>
+        <p className="text-sm text-muted-foreground">Organisasjonen, administratorer og kontoen din.</p>
       </div>
       <Suspense fallback={<Skeleton className="h-64 rounded-2xl" />}>
         <Loader />
@@ -27,8 +29,7 @@ export default function SettingsPage() {
 
 async function Loader() {
   const user = await requireUser();
-  const organizations = await getOrganizations();
-  if (organizations.length === 0) redirect("/dashboard");
+  const [organizations, plan] = await Promise.all([getOrganizations(), getDeletionPlan(user.id)]);
   const members = await Promise.all(organizations.map((o) => getOrgMembers(o.id)));
 
   return (
@@ -41,7 +42,7 @@ async function Loader() {
           currentUserId={user.id}
         />
       ))}
-      <p className="text-sm text-muted-foreground">Innlogget som {user.email}</p>
+      <AccountSettings email={user.email ?? ""} plan={plan} contactEmail={CONTACT_EMAIL} />
     </div>
   );
 }

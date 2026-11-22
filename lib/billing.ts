@@ -36,8 +36,14 @@ export function getStripe() {
   return stripeClient;
 }
 
-/** Supabase med servernøkkel. Brukes kun til å skrive medlemskapsstatus. */
-function createAdminClient() {
+/** Servernøkkelen til Supabase er satt (trengs for medlemskap og kontosletting). */
+export const isAdminConfigured = Boolean(supabaseSecretKey && supabaseUrl);
+
+/**
+ * Supabase med servernøkkel – går forbi RLS. Brukes kun til å skrive
+ * medlemskapsstatus og til å slette en konto brukeren selv har bedt om.
+ */
+export function createAdminClient() {
   return createSupabaseClient(supabaseUrl, supabaseSecretKey, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });

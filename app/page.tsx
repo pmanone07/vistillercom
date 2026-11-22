@@ -3,6 +3,7 @@ import { ClipboardList, GraduationCap, HeartHandshake, Link2, Music, Trophy, Use
 import { buttonVariants } from "@/components/ui/button";
 import { StickyPages, type StickyPageItem } from "@/components/ui/sticky-pages";
 import { Logo } from "@/components/logo";
+import { LegalLinks } from "@/components/legal-links";
 import { MEMBERSHIP } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { ScrollDownButton } from "./scroll-down-button";
@@ -160,6 +161,7 @@ const pages: StickyPageItem[] = [
           </Link>
         </div>
         <footer className="px-5 py-5 pb-safe-bar text-center text-sm text-primary-foreground/75">
+          <LegalLinks className="mb-1" linkClassName="text-primary-foreground" />
           © ViStiller · vistiller.com
         </footer>
       </div>

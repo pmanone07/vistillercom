@@ -142,7 +142,7 @@ export function PublicEventView({ event }: { event: PublicEvent }) {
             <DialogDescription>Skriv navnet ditt, så står du på listen. Du trenger ikke konto.</DialogDescription>
           </DialogHeader>
           <form onSubmit={submitSignup} className="space-y-4">
-            <Field label="Navn" htmlFor="guest-name">
+            <Field label="Navn" htmlFor="guest-name" hint="Vises for alle som har lenken.">
               <Input
                 id="guest-name"
                 value={contact.name}
@@ -177,6 +177,13 @@ export function PublicEventView({ event }: { event: PublicEvent }) {
               {submitting && <Loader2 className="animate-spin" />}
               Meld meg på
             </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              Les mer i{" "}
+              <Link href="/personvern" className="font-medium text-primary underline-offset-4 hover:underline">
+                personvernerklæringen
+              </Link>
+              .
+            </p>
           </form>
         </DialogContent>
       </Dialog>

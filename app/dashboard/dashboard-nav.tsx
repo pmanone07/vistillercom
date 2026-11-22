@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, CreditCard, LayoutDashboard, LogOut, Plus, Settings } from "lucide-react";
+import { ChevronDown, CreditCard, LayoutDashboard, LogOut, Plus, Settings, ShieldCheck } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -54,6 +55,10 @@ export function DashboardNav() {
             className={cn("h-10 px-2.5 text-base sm:h-9 sm:text-sm", pathname.startsWith("/dashboard/medlemskap") && active)}
           >
             <CreditCard /> Medlemskap
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem render={<Link href="/personvern" />} className="h-10 px-2.5 text-base sm:h-9 sm:text-sm">
+            <ShieldCheck /> Personvern
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

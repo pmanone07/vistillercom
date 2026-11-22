@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LegalLinks } from "@/components/legal-links";
 
 export function PublicFooter() {
   return (
@@ -8,6 +9,7 @@ export function PublicFooter() {
         ViStiller
       </Link>{" "}
       – mindre organisering, mer fellesskap.
+      <LegalLinks className="mt-2" />
     </footer>
   );
 }
