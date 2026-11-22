@@ -10,7 +10,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test:db": "node supabase/tests/db.test.mjs",
     "cap:sync": "cap sync",
-    "cap:assets": "node scripts/make-app-assets.mjs && capacitor-assets generate --ios --android --iconBackgroundColor #0f7a55 --iconBackgroundColorDark #0f7a55 --splashBackgroundColor #ffffff --splashBackgroundColorDark #ffffff",
+    "cap:assets": "node scripts/make-app-assets.mjs && capacitor-assets generate --ios --android --iconBackgroundColor #ffffff --iconBackgroundColorDark #ffffff --splashBackgroundColor #ffffff --splashBackgroundColorDark #ffffff",
     "cap:android": "cap open android",
     "cap:ios": "cap open ios"
   },
