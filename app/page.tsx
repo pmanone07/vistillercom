@@ -4,7 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { StickyPages, type StickyPageItem } from "@/components/ui/sticky-pages";
 import { Logo } from "@/components/logo";
 import { LegalLinks } from "@/components/legal-links";
-import { MEMBERSHIP } from "@/lib/membership";
+import { MEMBERSHIP, showPricing } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { ScrollDownButton } from "./scroll-down-button";
 
@@ -144,6 +144,7 @@ const pages: StickyPageItem[] = [
           <p className="mt-4 max-w-md text-lg text-primary-foreground/85">
             Opprett et arrangement, del lenken, og la folk velge hva de vil bidra med.
           </p>
+          {showPricing && (
           <p className="mt-6 rounded-2xl bg-primary-foreground/10 px-5 py-3 text-primary-foreground">
             <span className="text-2xl font-bold tabular-nums">{MEMBERSHIP.priceLabel}</span>{" "}
             <span className="text-primary-foreground/85">
@@ -153,6 +154,7 @@ const pages: StickyPageItem[] = [
               Prisen er {MEMBERSHIP.vatLabel}. Deltakere melder seg på gratis.
             </span>
           </p>
+          )}
           <Link
             href="/dashboard/events/new"
             className={cn(buttonVariants({ variant: "secondary" }), "mt-8 h-12 px-6 text-base")}

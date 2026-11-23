@@ -1,23 +1,26 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PricingCard } from "@/components/pricing-card";
-import { MEMBERSHIP } from "@/lib/membership";
+import { MEMBERSHIP, showPricing } from "@/lib/membership";
+import { cn } from "@/lib/utils";
 import { AuthForm } from "../auth-form";
 
 export const metadata: Metadata = {
   title: "Opprett konto",
-  description: `ViStiller for arrangører: ${MEMBERSHIP.priceLabel} ${MEMBERSHIP.intervalLabel} ${MEMBERSHIP.unitLabel}, ${MEMBERSHIP.vatLabel}. Deltakere melder seg på gratis.`,
+  description: showPricing
+    ? `ViStiller for arrangører: ${MEMBERSHIP.priceLabel} ${MEMBERSHIP.intervalLabel} ${MEMBERSHIP.unitLabel}, ${MEMBERSHIP.vatLabel}. Deltakere melder seg på gratis.`
+    : "Opprett en ViStiller-konto og organiser dugnader og arrangementer. Deltakere melder seg på uten konto.",
 };
 
 const steps = [
   "Opprett konto",
   "Legg inn skolen, laget eller korpset",
-  `Betal ${MEMBERSHIP.priceLabel} ${MEMBERSHIP.vatLabel} for ett år`,
+  showPricing ? `Betal ${MEMBERSHIP.priceLabel} ${MEMBERSHIP.vatLabel} for ett år` : "Opprett arrangementet og del lenken",
 ];
 
 export default function RegisterPage() {
   return (
-    <div className="grid w-full max-w-4xl items-start gap-5 md:grid-cols-2">
+    <div className={cn("grid w-full items-start gap-5", showPricing ? "max-w-4xl md:grid-cols-2" : "max-w-md")}>
       {/* Skjemaet først på mobil, med prisen synlig rett over knappen. */}
       <div className="rounded-2xl bg-card p-6 shadow-sm ring-1 ring-foreground/10">
         <h1 className="text-xl font-bold">Opprett konto</h1>
@@ -34,6 +37,7 @@ export default function RegisterPage() {
           ))}
         </ol>
 
+        {showPricing && (
         <div className="mb-5 rounded-xl bg-primary/5 p-3 text-sm ring-1 ring-primary/15">
           <p className="font-semibold">
             {MEMBERSHIP.priceLabel} {MEMBERSHIP.intervalLabel} {MEMBERSHIP.unitLabel}{" "}
@@ -43,13 +47,14 @@ export default function RegisterPage() {
             Ingenting trekkes når du oppretter konto. Du betaler i steg 3, og kan si opp når som helst.
           </p>
         </div>
+        )}
 
         <Suspense>
           <AuthForm mode="register" />
         </Suspense>
       </div>
 
-      <PricingCard className="shadow-sm" />
+      {showPricing && <PricingCard className="shadow-sm" />}
     </div>
   );
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPage, Section } from "@/components/legal-page";
 import { CONTACT_EMAIL, CONTROLLER_NAME, TERMS_UPDATED } from "@/lib/legal";
-import { MEMBERSHIP } from "@/lib/membership";
+import { MEMBERSHIP, showPricing } from "@/lib/membership";
 
 export const metadata: Metadata = {
   title: "Brukervilkår",
@@ -114,6 +114,13 @@ export default function TermsPage() {
       </Section>
 
       <Section id="medlemskap" title="4. Medlemskap og betaling">
+        {!showPricing ? (
+          <p>
+            ViStiller er gratis å bruke for arrangører i en testperiode. Innfører vi betaling, får du beskjed i forkant,
+            og ingenting trekkes uten at du selv velger å betale. For deltakere er ViStiller alltid gratis.
+          </p>
+        ) : (
+        <>
         <p>
           For å opprette og administrere arrangementer må organisasjonen ha et aktivt medlemskap. Det koster{" "}
           {MEMBERSHIP.priceLabel} {MEMBERSHIP.intervalLabel} {MEMBERSHIP.unitLabel}, {MEMBERSHIP.vatLabel}. For
@@ -135,6 +142,8 @@ export default function TermsPage() {
             Endrer vi prisen, varsler vi i god tid før neste fornyelse. Du kan da si opp før den nye prisen gjelder.
           </li>
         </ul>
+        </>
+        )}
       </Section>
 
       <Section id="innhold" title="5. Ansvar for det du legger inn">

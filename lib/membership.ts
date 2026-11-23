@@ -25,6 +25,16 @@ export const MEMBERSHIP = {
   ],
 } as const;
 
+/**
+ * MIDLERTIDIG PAUSE av betalingsmuren mens appen testes og godkjennes i Google Play.
+ * true  = alle kan bruke ViStiller uten å betale, og pris-/betalingstekster skjules.
+ * false = betalingsmuren og alle pristekster er tilbake (normal drift).
+ */
+export const PAYWALL_PAUSED = true;
+
+/** Skal pris og betaling vises i grensesnittet? */
+export const showPricing = !PAYWALL_PAUSED;
+
 export interface MembershipFields {
   subscription_status?: string | null;
   access_until?: string | null;

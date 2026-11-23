@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
-import { MEMBERSHIP } from "@/lib/membership";
+import { MEMBERSHIP, PAYWALL_PAUSED } from "@/lib/membership";
 import { supabaseUrl } from "@/lib/supabase/env";
 
 // Hemmelige nøkler. Leses bare her, på serveren, og sendes aldri til nettleseren.
@@ -23,14 +23,10 @@ export const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 export const isBillingEnabled = Boolean(stripeSecretKey && supabaseSecretKey && supabaseUrl);
 
 /**
- * MIDLERTIDIG AV mens appen testes og godkjennes i Google Play.
- * Sett tilbake til false for å slå betalingsmuren på igjen.
- * Stripe, medlemskapssiden og webhooken virker som før; det er bare kravet
- * om aktivt medlemskap for å bruke dashbordet som er pauset.
+ * Kreves aktivt medlemskap for å opprette og administrere arrangementer?
+ * Pauses med PAYWALL_PAUSED i lib/membership.ts. Stripe, medlemskapssiden og
+ * webhooken virker som før mens pausen varer.
  */
-const PAYWALL_PAUSED = true;
-
-/** Kreves aktivt medlemskap for å opprette og administrere arrangementer? */
 export const isPaywallEnabled = isBillingEnabled && !PAYWALL_PAUSED;
 
 /**

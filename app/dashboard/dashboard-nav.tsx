@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { showPricing } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { signOut } from "../(auth)/actions";
 
@@ -50,12 +51,14 @@ export function DashboardNav() {
           >
             <Settings /> Innstillinger
           </DropdownMenuItem>
+          {showPricing && (
           <DropdownMenuItem
             render={<Link href="/dashboard/medlemskap" />}
             className={cn("h-10 px-2.5 text-base sm:h-9 sm:text-sm", pathname.startsWith("/dashboard/medlemskap") && active)}
           >
             <CreditCard /> Medlemskap
           </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem render={<Link href="/personvern" />} className="h-10 px-2.5 text-base sm:h-9 sm:text-sm">
             <ShieldCheck /> Personvern
