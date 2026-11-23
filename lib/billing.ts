@@ -23,6 +23,17 @@ export const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 export const isBillingEnabled = Boolean(stripeSecretKey && supabaseSecretKey && supabaseUrl);
 
 /**
+ * MIDLERTIDIG AV mens appen testes og godkjennes i Google Play.
+ * Sett tilbake til false for å slå betalingsmuren på igjen.
+ * Stripe, medlemskapssiden og webhooken virker som før; det er bare kravet
+ * om aktivt medlemskap for å bruke dashbordet som er pauset.
+ */
+const PAYWALL_PAUSED = true;
+
+/** Kreves aktivt medlemskap for å opprette og administrere arrangementer? */
+export const isPaywallEnabled = isBillingEnabled && !PAYWALL_PAUSED;
+
+/**
  * Sett STRIPE_AUTOMATIC_TAX=true når Stripe Tax er satt opp (med norsk
  * mva-registrering). Da regner Stripe ut mva-andelen av de 499 kronene og
  * viser den på kvitteringen. Uten dette trekkes fortsatt nøyaktig 499 kr.

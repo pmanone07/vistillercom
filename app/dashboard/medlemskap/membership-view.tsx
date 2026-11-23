@@ -111,7 +111,7 @@ function OrganizationMembership({ organization, showName }: { organization: Orga
     });
   }
 
-  if (organization.hasAccess) {
+  if (organization.hasMembership ?? organization.hasAccess) {
     const until = organization.access_until ? formatShortDate(organization.access_until) : null;
     const ending = organization.cancel_at_period_end;
     const pastDue = organization.subscription_status === "past_due";

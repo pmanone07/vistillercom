@@ -1,6 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import { isBillingEnabled } from "@/lib/billing";
+import { isBillingEnabled, isPaywallEnabled } from "@/lib/billing";
 import { membershipIsActive, type MembershipFields } from "@/lib/membership";
 import { createClient } from "@/lib/supabase/server";
 import type { EventRow, Organization, SignupRow, TaskRow, TaskWithSignups } from "@/lib/types";
@@ -35,14 +35,15 @@ export async function getOrganizations(): Promise<Organization[]> {
   type Row = Pick<Organization, "id" | "name" | "description"> & MembershipFields & { stripe_customer_id?: string | null };
   return ((data ?? []) as unknown as Row[]).map(({ stripe_customer_id, ...org }) => ({
     ...org,
-    hasAccess: !isBillingEnabled || membershipIsActive(org, now),
+    hasAccess: !isPaywallEnabled || membershipIsActive(org, now),
+    hasMembership: !isBillingEnabled || membershipIsActive(org, now),
     hasBillingAccount: Boolean(stripe_customer_id),
   }));
 }
 
 /** Sender videre til medlemskapssiden hvis organisasjonen ikke har betalt tilgang. */
 export async function requireOrgAccess(organizationId: string) {
-  if (!isBillingEnabled) return;
+  if (!isPaywallEnabled) return;
   const organizations = await getOrganizations();
   const org = organizations.find((o) => o.id === organizationId);
   if (!org?.hasAccess) redirect("/dashboard/medlemskap");

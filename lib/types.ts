@@ -6,6 +6,8 @@ export interface Organization {
   description: string | null;
   /** Kan organisasjonen bruke ViStiller nå? Alltid true når betalingsmuren er av. */
   hasAccess: boolean;
+  /** Har organisasjonen faktisk betalt medlemskap (uavhengig av om betalingsmuren er pauset)? */
+  hasMembership?: boolean;
   // Medlemskapsfeltene finnes bare når betalingsmuren er på.
   subscription_status?: string | null;
   access_until?: string | null;

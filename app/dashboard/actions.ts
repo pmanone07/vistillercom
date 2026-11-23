@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
-import { isBillingEnabled } from "@/lib/billing";
+import { isPaywallEnabled } from "@/lib/billing";
 import { membershipIsActive } from "@/lib/membership";
 import { messageFor, NOT_CONFIGURED } from "@/lib/errors";
 import { fromLocalInput, toLocalDate, toLocalTime } from "@/lib/format";
@@ -26,7 +26,7 @@ const NO_MEMBERSHIP = "Organisasjonen har ikke aktivt medlemskap. Gå til «Medl
 
 /** Betalingsmur på serveren: sjekkes på nytt her, ikke bare i skjermbildene. */
 async function orgHasAccess(supabase: Awaited<ReturnType<typeof createClient>>, organizationId: string) {
-  if (!isBillingEnabled) return true;
+  if (!isPaywallEnabled) return true;
   const { data } = await supabase
     .from("organizations")
     .select("subscription_status, access_until")
