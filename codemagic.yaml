@@ -2,7 +2,7 @@
 #
 # Må settes opp i Codemagic før første bygg:
 #   1. Team settings → Integrations → App Store Connect: legg inn en API-nøkkel
-#      og gi den navnet «ViStiller» (eller endre navnet under `integrations`).
+#      og gi den navnet «Codemagic» (eller endre navnet under `integrations`).
 #   2. Team settings → Code signing identities: last opp / generer et
 #      distribusjonssertifikat og en App Store-profil for com.vistillercom.app.
 #   3. Appen må finnes i App Store Connect med samme bundle-ID.
@@ -16,7 +16,7 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
-      app_store_connect: ViStiller
+      app_store_connect: Codemagic
     environment:
       ios_signing:
         distribution_type: app_store
