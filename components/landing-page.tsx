@@ -1,0 +1,233 @@
+import Link from "next/link";
+import { ClipboardList, GraduationCap, HeartHandshake, Link2, Music, Trophy, Users } from "lucide-react";
+import { ScrollDownButton } from "@/app/scroll-down-button";
+import { buttonVariants } from "@/components/ui/button";
+import { StickyPages, type StickyPageItem } from "@/components/ui/sticky-pages";
+import { Logo } from "@/components/logo";
+import { LangPicker } from "@/components/lang-picker";
+import { LegalLinks } from "@/components/legal-links";
+import { AUTH_PATHS, type AuthLang } from "@/lib/auth-i18n";
+import { MEMBERSHIP, showPricing } from "@/lib/membership";
+import { cn } from "@/lib/utils";
+
+// Forsiden (informasjon om ViStiller) på norsk (/) og engelsk (/en).
+// Samme oppsett for begge – bare tekstene er forskjellige.
+
+const TEXT = {
+  nb: {
+    login: "Logg inn",
+    badge: "For skoler, idrettslag, korps og frivillige",
+    titleA: "Mindre organisering.",
+    titleB: "Mer fellesskap.",
+    lead: "Planlegg dugnader og arrangementer, fordel oppgaver og få folk til å stille opp – helt enkelt.",
+    cta: "Opprett arrangement",
+    howCta: "Se hvordan det fungerer",
+    howTitle: "Slik fungerer det",
+    howLead: "Slutt på Excel-ark, Facebook-tråder og «hvem tar med kaffe?».",
+    steps: [
+      {
+        icon: ClipboardList,
+        title: "Opprett arrangementet",
+        text: "Legg inn dato, sted og hva dere trenger: fem som baker, tre som rigger, to som rydder.",
+      },
+      { icon: Link2, title: "Del én lenke", text: "Send den på SMS, Messenger, Spond eller e-post – eller heng opp QR-koden." },
+      {
+        icon: Users,
+        title: "Folk melder seg på",
+        text: "Uten konto og uten skjemaer. Du ser hele tiden hvem som stiller og hva som mangler.",
+      },
+    ],
+    forTitle: "Laget for alle som arrangerer",
+    forLead: "Bruk ViStiller gjennom hele året, ikke bare til én dugnad.",
+    audiences: [
+      { icon: GraduationCap, title: "Skoler og FAU", text: "Sommeravslutninger, klassefester, kafésalg og foreldrevakter." },
+      { icon: Trophy, title: "Idrettslag", text: "Cuper, kioskvakter, kjøring til kamp, rigging og rydding." },
+      { icon: Music, title: "Korps", text: "Konserter, 17. mai, loppemarked og loddsalg." },
+      { icon: HeartHandshake, title: "Nabolag og frivillige", text: "Dugnader, velforeninger og fellesmiddager." },
+    ],
+    endTitle: "Klart på få minutter.",
+    endLead: "Opprett et arrangement, del lenken, og la folk velge hva de vil bidra med.",
+    price: {
+      amount: MEMBERSHIP.priceLabel,
+      unit: `${MEMBERSHIP.intervalLabel} ${MEMBERSHIP.unitLabel}`,
+      note: `Prisen er ${MEMBERSHIP.vatLabel}. Deltakere melder seg på gratis.`,
+    },
+  },
+  en: {
+    login: "Log in",
+    badge: "For schools, clubs, bands and volunteers",
+    titleA: "Less organizing.",
+    titleB: "More community.",
+    lead: "Plan volunteer work and events, share out the tasks and get people to show up – simple as that.",
+    cta: "Create event",
+    howCta: "See how it works",
+    howTitle: "How it works",
+    howLead: "No more spreadsheets, Facebook threads and “who's bringing the coffee?”.",
+    steps: [
+      {
+        icon: ClipboardList,
+        title: "Create the event",
+        text: "Add the date, place and what you need: five to bake, three to set up, two to clean up.",
+      },
+      { icon: Link2, title: "Share one link", text: "Send it by text, Messenger, Spond or email – or put up the QR code." },
+      {
+        icon: Users,
+        title: "People sign up",
+        text: "No account and no forms. You always see who is coming and what is still missing.",
+      },
+    ],
+    forTitle: "Made for everyone who organizes",
+    forLead: "Use ViStiller all year round, not just for one event.",
+    audiences: [
+      {
+        icon: GraduationCap,
+        title: "Schools and parent groups",
+        text: "End-of-year parties, class parties, bake sales and parent patrols.",
+      },
+      { icon: Trophy, title: "Sports clubs", text: "Tournaments, kiosk shifts, driving to matches, setting up and clearing away." },
+      { icon: Music, title: "Bands", text: "Concerts, Constitution Day, flea markets and raffles." },
+      { icon: HeartHandshake, title: "Neighbours and volunteers", text: "Work days, residents' associations and community dinners." },
+    ],
+    endTitle: "Ready in a few minutes.",
+    endLead: "Create an event, share the link, and let people choose how they want to help.",
+    price: {
+      amount: `NOK ${MEMBERSHIP.priceNok}`,
+      unit: "per year per organization",
+      note: "The price includes VAT. Participants sign up for free.",
+    },
+  },
+} as const;
+
+export function LandingPage({ lang }: { lang: AuthLang }) {
+  const t = TEXT[lang];
+
+  const pages: StickyPageItem[] = [
+    {
+      id: "hero",
+      bg: "bg-background",
+      content: (
+        <div className="flex h-full flex-col">
+          <header className="mx-auto flex h-16 w-full max-w-5xl shrink-0 items-center justify-between px-5 pt-safe">
+            <Logo href={lang === "en" ? "/en" : "/"} />
+            <div className="flex items-center gap-2">
+              <LangPicker current={lang} />
+              <Link href={AUTH_PATHS[lang].login} className={cn(buttonVariants({ variant: "ghost" }), "h-10 px-3 sm:px-4")}>
+                {t.login}
+              </Link>
+            </div>
+          </header>
+          <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-5 pb-10 text-center">
+            <p className="mb-4 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">{t.badge}</p>
+            <h1 className="text-4xl leading-[1.05] font-extrabold tracking-tight text-balance sm:text-6xl">
+              {t.titleA} <span className="text-primary">{t.titleB}</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-lg text-pretty text-muted-foreground">{t.lead}</p>
+            <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <Link href="/dashboard/events/new" className={cn(buttonVariants(), "h-12 px-6 text-base")}>
+                {t.cta}
+              </Link>
+              <ScrollDownButton>{t.howCta}</ScrollDownButton>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "slik",
+      bg: "bg-muted",
+      className: "rounded-t-3xl shadow-[0_-16px_40px_-24px_rgb(0_0_0/0.35)]",
+      content: (
+        // Ytre flate ruller hvis skjermen er svært lav; min-h-full + justify-center
+        // midtstiller uten å klippe toppen.
+        <div className="h-full overflow-y-auto">
+          <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col justify-center px-5 py-6">
+            <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl">{t.howTitle}</h2>
+            <p className="mx-auto mt-2 max-w-md text-center text-sm text-muted-foreground sm:text-base">{t.howLead}</p>
+            <ol className="mt-5 grid gap-2.5 sm:mt-10 sm:grid-cols-3 sm:gap-5">
+              {t.steps.map((step, index) => (
+                <li
+                  key={step.title}
+                  className="flex gap-3 rounded-2xl bg-background p-3.5 ring-1 ring-foreground/10 sm:flex-col sm:gap-4 sm:p-6"
+                >
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:size-11">
+                    <step.icon className="size-5" aria-hidden />
+                  </span>
+                  <div>
+                    <h3 className="font-semibold">
+                      {index + 1}. {step.title}
+                    </h3>
+                    <p className="mt-0.5 text-sm text-muted-foreground sm:mt-1">{step.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "for-hvem",
+      bg: "bg-background",
+      className: "rounded-t-3xl shadow-[0_-16px_40px_-24px_rgb(0_0_0/0.35)]",
+      content: (
+        <div className="h-full overflow-y-auto">
+          <div className="mx-auto flex min-h-full w-full max-w-5xl flex-col justify-center px-5 py-6">
+            <h2 className="text-center text-3xl font-bold tracking-tight text-balance sm:text-4xl">{t.forTitle}</h2>
+            <p className="mx-auto mt-2 max-w-md text-center text-sm text-muted-foreground sm:text-base">{t.forLead}</p>
+            {/* To kolonner på mobil, så alle fire får plass på ett ark. */}
+            <ul className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-10 sm:gap-5 lg:grid-cols-4">
+              {t.audiences.map((a) => (
+                <li key={a.title} className="flex flex-col gap-2.5 rounded-2xl bg-muted/60 p-3.5 sm:gap-4 sm:p-6">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-background text-primary ring-1 ring-foreground/10 sm:size-11">
+                    <a.icon className="size-5" aria-hidden />
+                  </span>
+                  <div>
+                    <h3 className="leading-snug font-semibold">{a.title}</h3>
+                    <p className="mt-1 text-[0.8rem] leading-snug text-muted-foreground sm:text-sm">{a.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: "start",
+      bg: "bg-primary",
+      className: "rounded-t-3xl",
+      content: (
+        <div className="flex h-full flex-col text-primary-foreground">
+          <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-5 text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-balance sm:text-5xl">{t.endTitle}</h2>
+            <p className="mt-4 max-w-md text-lg text-primary-foreground/85">{t.endLead}</p>
+            {showPricing && (
+              <p className="mt-6 rounded-2xl bg-primary-foreground/10 px-5 py-3 text-primary-foreground">
+                <span className="text-2xl font-bold tabular-nums">{t.price.amount}</span>{" "}
+                <span className="text-primary-foreground/85">{t.price.unit}</span>
+                <span className="block text-sm text-primary-foreground/75">{t.price.note}</span>
+              </p>
+            )}
+            <Link
+              href="/dashboard/events/new"
+              className={cn(buttonVariants({ variant: "secondary" }), "mt-8 h-12 px-6 text-base")}
+            >
+              {t.cta}
+            </Link>
+          </div>
+          <footer className="px-5 py-5 pb-safe-bar text-center text-sm text-primary-foreground/75">
+            <LegalLinks lang={lang} className="mb-1" linkClassName="text-primary-foreground" />
+            © ViStiller · vistiller.com
+          </footer>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <main lang={lang === "en" ? "en" : undefined}>
+      {/* 100svh: riktig høyde på mobil selv når adresselinjen vises. */}
+      <StickyPages pages={pages} pageHeight="100svh" />
+    </main>
+  );
+}
