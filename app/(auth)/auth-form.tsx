@@ -7,12 +7,15 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, bigInput } from "@/components/field";
+import { AUTH_PATHS, AUTH_TEXT, type AuthLang } from "@/lib/auth-i18n";
 import { signIn, signUp, type AuthState } from "./actions";
 
 const initial: AuthState = {};
 
-export function AuthForm({ mode }: { mode: "login" | "register" }) {
+export function AuthForm({ mode, lang = "nb" }: { mode: "login" | "register"; lang?: AuthLang }) {
   const isLogin = mode === "login";
+  const t = AUTH_TEXT[lang];
+  const paths = AUTH_PATHS[lang];
   const [state, action, pending] = useActionState(isLogin ? signIn : signUp, initial);
   const next = useSearchParams().get("next") ?? "";
 
@@ -27,10 +30,11 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="next" value={next} />
-      <Field label="E-post" htmlFor="email">
+      <input type="hidden" name="lang" value={lang} />
+      <Field label={t.email} htmlFor="email">
         <Input id="email" name="email" type="email" autoComplete="email" inputMode="email" required className={bigInput} />
       </Field>
-      <Field label="Passord" htmlFor="password" hint={isLogin ? undefined : "Minst 8 tegn."}>
+      <Field label={t.password} htmlFor="password" hint={isLogin ? undefined : t.passwordHint}>
         <Input
           id="password"
           name="password"
@@ -48,28 +52,28 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       )}
       <Button type="submit" disabled={pending} className="h-12 w-full text-base">
         {pending && <Loader2 className="animate-spin" />}
-        {isLogin ? "Logg inn" : "Opprett konto"}
+        {isLogin ? t.login : t.register}
       </Button>
       {!isLogin && (
         <p className="text-center text-xs text-muted-foreground">
-          Ved å opprette konto godtar du{" "}
+          {t.acceptPrefix}
           <Link href="/vilkar" className="font-medium text-primary underline-offset-4 hover:underline">
-            brukervilkårene
+            {t.terms}
           </Link>
-          . Les også{" "}
+          {t.readAlso}
           <Link href="/personvern" className="font-medium text-primary underline-offset-4 hover:underline">
-            personvernerklæringen
+            {t.privacy}
           </Link>
           .
         </p>
       )}
       <p className="text-center text-sm text-muted-foreground">
-        {isLogin ? "Har du ikke konto? " : "Har du konto fra før? "}
+        {isLogin ? t.noAccount : t.haveAccount}
         <Link
-          href={(isLogin ? "/registrer" : "/login") + (next ? `?next=${encodeURIComponent(next)}` : "")}
+          href={(isLogin ? paths.register : paths.login) + (next ? `?next=${encodeURIComponent(next)}` : "")}
           className="font-medium text-primary underline-offset-4 hover:underline"
         >
-          {isLogin ? "Opprett konto" : "Logg inn"}
+          {isLogin ? t.register : t.login}
         </Link>
       </p>
     </form>

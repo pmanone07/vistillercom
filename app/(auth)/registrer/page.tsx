@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { LangSwitch } from "@/components/lang-switch";
 import { PricingCard } from "@/components/pricing-card";
+import { AUTH_PATHS } from "@/lib/auth-i18n";
 import { MEMBERSHIP, showPricing } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 import { AuthForm } from "../auth-form";
@@ -23,7 +25,10 @@ export default function RegisterPage() {
     <div className={cn("grid w-full items-start gap-5", showPricing ? "max-w-4xl md:grid-cols-2" : "max-w-md")}>
       {/* Skjemaet først på mobil, med prisen synlig rett over knappen. */}
       <div className="rounded-2xl bg-card p-6 shadow-sm ring-1 ring-foreground/10">
-        <h1 className="text-xl font-bold">Opprett konto</h1>
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-xl font-bold">Opprett konto</h1>
+          <LangSwitch lang="en" to={AUTH_PATHS.en.register} />
+        </div>
         <p className="mt-1 text-sm text-muted-foreground">For deg som arrangerer. Klart på få minutter.</p>
 
         <ol className="my-5 space-y-2 text-sm">

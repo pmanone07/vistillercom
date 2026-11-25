@@ -1,10 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { AUTH_PATHS, LANG_COOKIE } from "@/lib/auth-i18n";
 import { isSupabaseConfigured, supabaseKey, supabaseUrl } from "@/lib/supabase/env";
+
+const AUTH_PAGES = new Set<string>([...Object.values(AUTH_PATHS.nb), ...Object.values(AUTH_PATHS.en)]);
 
 // Fornyer Supabase-økten og sender ikke-innloggede bort fra dashbordet.
 // /start er inngangen til appene (Capacitor og PWA): innloggede går rett til
-// dashbordet, andre får forsiden med informasjon om ViStiller.
+// dashbordet. Andre velger språk første gang (/velg-sprak), og får deretter
+// forsiden (norsk) eller den engelske innloggingen.
 // Selve tilgangskontrollen ligger i RLS og i requireUser() – dette er bare
 // en rask første sjekk.
 export async function proxy(request: NextRequest) {
@@ -34,14 +38,21 @@ export async function proxy(request: NextRequest) {
   // en måte skjemaet forstår. En omdirigering her gir «unexpected response».
   if (request.method !== "GET" && request.method !== "HEAD") return response;
 
-  if (pathname === "/start") return redirectTo(request, data.user ? "/dashboard" : "/");
+  // Språket brukeren valgte ved første åpning (/velg-sprak). Gjelder bare innlogging og registrering.
+  const lang = request.cookies.get(LANG_COOKIE)?.value;
+
+  if (pathname === "/start") {
+    if (data.user) return redirectTo(request, "/dashboard");
+    if (lang === "en") return redirectTo(request, AUTH_PATHS.en.login);
+    return redirectTo(request, lang === "nb" ? "/" : "/velg-sprak");
+  }
   if (!data.user && pathname.startsWith("/dashboard")) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = lang === "en" ? AUTH_PATHS.en.login : AUTH_PATHS.nb.login;
     url.search = `?next=${encodeURIComponent(pathname)}`;
     return NextResponse.redirect(url);
   }
-  if (data.user && (pathname === "/login" || pathname === "/registrer")) {
+  if (data.user && AUTH_PAGES.has(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";
@@ -58,5 +69,5 @@ function redirectTo(request: NextRequest, pathname: string) {
 }
 
 export const config = {
-  matcher: ["/start", "/dashboard/:path*", "/login", "/registrer"],
+  matcher: ["/start", "/dashboard/:path*", "/login", "/registrer", "/en/login", "/en/register"],
 };
