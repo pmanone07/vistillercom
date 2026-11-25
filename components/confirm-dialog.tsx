@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/components/i18n-provider";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Props {
@@ -23,10 +24,11 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
-  cancelLabel = "Avbryt",
+  cancelLabel,
   destructive,
   onConfirm,
 }: Props) {
+  const t = useT();
   const [busy, setBusy] = useState(false);
 
   async function confirm() {
@@ -48,7 +50,7 @@ export function ConfirmDialog({
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
-            {cancelLabel}
+            {cancelLabel ?? t.common.cancel}
           </Button>
           <Button variant={destructive ? "destructive" : "default"} onClick={confirm} disabled={busy}>
             {busy && <Loader2 className="animate-spin" />}

@@ -3,13 +3,17 @@
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { getStripe, isBillingEnabled, membershipLineItem, stripeAutomaticTax, syncSubscription } from "@/lib/billing";
+import { getMessages } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
 import { membershipIsActive } from "@/lib/membership";
 import { getOrigin } from "@/lib/public-data";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 
-const NOT_ENABLED = "Betaling er ikke satt opp ennå.";
-const STRIPE_FAILED = "Fikk ikke kontakt med betalingsløsningen. Prøv igjen om litt.";
+async function texts() {
+  const lang = await getLang();
+  return { lang, t: getMessages(lang).membership };
+}
 
 /** Organisasjonen slik innlogget bruker ser den. RLS gir null hvis man ikke er medlem. */
 async function getOwnOrganization(organizationId: string) {
@@ -25,12 +29,13 @@ async function getOwnOrganization(organizationId: string) {
 
 /** Starter Stripe Checkout for årsmedlemskap. Returnerer adressen brukeren skal sendes til. */
 export async function startCheckout(organizationId: string): Promise<ActionResult<{ url: string }>> {
-  if (!isBillingEnabled) return { ok: false, error: NOT_ENABLED };
+  const { lang, t } = await texts();
+  if (!isBillingEnabled) return { ok: false, error: t.errNotEnabled };
   const user = await requireUser();
   const org = await getOwnOrganization(organizationId);
-  if (!org) return { ok: false, error: "Fant ikke organisasjonen." };
+  if (!org) return { ok: false, error: t.errOrg };
   if (membershipIsActive(org, Date.now())) {
-    return { ok: false, error: "Organisasjonen har allerede et aktivt medlemskap." };
+    return { ok: false, error: t.errAlready };
   }
 
   const origin = await getOrigin();
@@ -38,7 +43,7 @@ export async function startCheckout(organizationId: string): Promise<ActionResul
     const session = await getStripe().checkout.sessions.create({
       mode: "subscription",
       line_items: [membershipLineItem()],
-      locale: "nb",
+      locale: lang === "en" ? "en" : "nb",
       // Vanlig betaling: ViStiller er selger, og kunden betaler nøyaktig prisen.
       // Stripe-kontoen har Managed Payments (Stripe som selger) på som standard,
       // og det krever avgiftskode på produktet – så det slås av for disse kjøpene.
@@ -55,17 +60,17 @@ export async function startCheckout(organizationId: string): Promise<ActionResul
       client_reference_id: org.id,
       metadata: { organization_id: org.id },
       subscription_data: {
-        description: `ViStiller-medlemskap for ${org.name}`,
+        description: t.stripeDescription(org.name),
         metadata: { organization_id: org.id },
       },
       success_url: `${origin}/dashboard/medlemskap?betalt={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/dashboard/medlemskap?avbrutt=1`,
     });
-    if (!session.url) return { ok: false, error: STRIPE_FAILED };
+    if (!session.url) return { ok: false, error: t.errStripe };
     return { ok: true, data: { url: session.url } };
   } catch (err) {
     console.error("[vistiller] startCheckout", err instanceof Error ? err.message : err);
-    return { ok: false, error: STRIPE_FAILED };
+    return { ok: false, error: t.errStripe };
   }
 }
 
@@ -74,15 +79,16 @@ export async function startCheckout(organizationId: string): Promise<ActionResul
  * Stripe, så tilgangen er på plass med en gang – uten å vente på webhooken.
  */
 export async function confirmCheckout(sessionId: string): Promise<ActionResult<{ paid: boolean }>> {
-  if (!isBillingEnabled) return { ok: false, error: NOT_ENABLED };
+  const { t } = await texts();
+  if (!isBillingEnabled) return { ok: false, error: t.errNotEnabled };
   await requireUser();
-  if (!/^cs_[A-Za-z0-9_]{10,200}$/.test(sessionId)) return { ok: false, error: "Ugyldig betalingsreferanse." };
+  if (!/^cs_[A-Za-z0-9_]{10,200}$/.test(sessionId)) return { ok: false, error: t.errRef };
 
   try {
     const session = await getStripe().checkout.sessions.retrieve(sessionId, { expand: ["subscription"] });
     // Bare medlemmer av organisasjonen betalingen gjelder, får bekrefte den.
     const org = session.client_reference_id ? await getOwnOrganization(session.client_reference_id) : null;
-    if (!org) return { ok: false, error: "Fant ikke organisasjonen." };
+    if (!org) return { ok: false, error: t.errOrg };
 
     const subscription = session.subscription;
     if (session.status !== "complete" || !subscription || typeof subscription === "string") {
@@ -92,26 +98,27 @@ export async function confirmCheckout(sessionId: string): Promise<ActionResult<{
     return { ok: true, data: { paid: true } };
   } catch (err) {
     console.error("[vistiller] confirmCheckout", err instanceof Error ? err.message : err);
-    return { ok: false, error: STRIPE_FAILED };
+    return { ok: false, error: t.errStripe };
   }
 }
 
 /** Åpner Stripe sin kundeportal: si opp, bytte kort, se kvitteringer. */
 export async function openBillingPortal(organizationId: string): Promise<ActionResult<{ url: string }>> {
-  if (!isBillingEnabled) return { ok: false, error: NOT_ENABLED };
+  const { lang, t } = await texts();
+  if (!isBillingEnabled) return { ok: false, error: t.errNotEnabled };
   await requireUser();
   const org = await getOwnOrganization(organizationId);
-  if (!org?.stripe_customer_id) return { ok: false, error: "Organisasjonen har ikke noe abonnement å administrere." };
+  if (!org?.stripe_customer_id) return { ok: false, error: t.errNoSub };
 
   try {
     const portal = await getStripe().billingPortal.sessions.create({
       customer: org.stripe_customer_id,
-      locale: "nb",
+      locale: lang === "en" ? "en" : "nb",
       return_url: `${await getOrigin()}/dashboard/medlemskap`,
     });
     return { ok: true, data: { url: portal.url } };
   } catch (err) {
     console.error("[vistiller] openBillingPortal", err instanceof Error ? err.message : err);
-    return { ok: false, error: STRIPE_FAILED };
+    return { ok: false, error: t.errStripe };
   }
 }

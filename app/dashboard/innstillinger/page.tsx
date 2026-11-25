@@ -4,21 +4,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SetupNotice } from "@/components/setup-notice";
 import { requireUser } from "@/lib/auth";
 import { getOrgMembers, getOrganizations } from "@/lib/data";
+import { getT } from "@/lib/i18n-server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { getDeletionPlan } from "@/lib/account";
 import { CONTACT_EMAIL } from "@/lib/legal";
-import { AccountSettings } from "./delete-account";
+import { AccountSettings, LanguageSettings } from "./delete-account";
 import { OrganizationSettings } from "./organization-settings";
 
-export const metadata: Metadata = { title: "Innstillinger" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT()).settings.title };
+}
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
   if (!isSupabaseConfigured) return <SetupNotice />;
+  const t = (await getT()).settings;
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Innstillinger</h1>
-        <p className="text-sm text-muted-foreground">Organisasjonen, administratorer og kontoen din.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">{t.subtitle}</p>
       </div>
       <Suspense fallback={<Skeleton className="h-64 rounded-2xl" />}>
         <Loader />
@@ -42,6 +46,7 @@ async function Loader() {
           currentUserId={user.id}
         />
       ))}
+      <LanguageSettings />
       <AccountSettings email={user.email ?? ""} plan={plan} contactEmail={CONTACT_EMAIL} />
     </div>
   );

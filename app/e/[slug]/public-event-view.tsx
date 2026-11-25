@@ -12,12 +12,17 @@ import { EventInfo, SignupClosedNotice } from "@/components/public/event-info";
 import { TaskCard } from "@/components/public/task-card";
 import { useAutoRefresh } from "@/components/public/use-auto-refresh";
 import { useGuestSignups } from "@/components/public/use-guest-signups";
+import { useLang, useT } from "@/components/i18n-provider";
+import { PATHS } from "@/lib/i18n";
 import { getGuestContact, getGuestToken } from "@/lib/guest";
 import type { PublicEvent, PublicTask } from "@/lib/types";
 import { loadMyTaskIds } from "../actions";
 
 export function PublicEventView({ event }: { event: PublicEvent }) {
   const { busyTaskId, signUp, cancel } = useGuestSignups(event.slug);
+  const lang = useLang();
+  const messages = useT();
+  const t = messages.public;
   const [token, setToken] = useState<string | null>(null);
   const [mine, setMine] = useState<Set<string>>(new Set());
   const [signupTask, setSignupTask] = useState<PublicTask | null>(null);
@@ -92,10 +97,7 @@ export function PublicEventView({ event }: { event: PublicEvent }) {
         >
           <UserCheck className="size-5 shrink-0 text-primary" aria-hidden />
           <span className="flex-1">
-            <span className="font-semibold">
-              Du stiller på {mine.size} {mine.size === 1 ? "oppgave" : "oppgaver"}.
-            </span>{" "}
-            Se bidragene dine og den private lenken din.
+            <span className="font-semibold">{t.youHelp(mine.size)}</span> {t.seeYours}
           </span>
           <ChevronRight className="size-5 text-muted-foreground" aria-hidden />
         </Link>
@@ -105,17 +107,17 @@ export function PublicEventView({ event }: { event: PublicEvent }) {
 
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Dette trenger vi hjelp til</h2>
+          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">{t.needHelp}</h2>
           {event.tasks.length > 0 && (
             <p className="text-sm text-muted-foreground tabular-nums">
-              {missing === 0 ? "Alt er dekket" : `${missing} ${missing === 1 ? "plass" : "plasser"} igjen`}
+              {missing === 0 ? t.allCovered : t.left(missing)}
             </p>
           )}
         </div>
 
         {event.tasks.length === 0 ? (
           <div className="rounded-2xl border border-dashed bg-background p-8 text-center text-muted-foreground">
-            Arrangøren har ikke lagt inn oppgaver ennå. Kom tilbake litt senere.
+            {t.noTasks}
           </div>
         ) : (
           <ul className="space-y-3">
@@ -139,10 +141,10 @@ export function PublicEventView({ event }: { event: PublicEvent }) {
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-lg">{signupTask?.title}</DialogTitle>
-            <DialogDescription>Skriv navnet ditt, så står du på listen. Du trenger ikke konto.</DialogDescription>
+            <DialogDescription>{t.signupIntro}</DialogDescription>
           </DialogHeader>
           <form onSubmit={submitSignup} className="space-y-4">
-            <Field label="Navn" htmlFor="guest-name" hint="Vises for alle som har lenken.">
+            <Field label={messages.common.name} htmlFor="guest-name" hint={t.nameHint}>
               <Input
                 id="guest-name"
                 value={contact.name}
@@ -154,7 +156,7 @@ export function PublicEventView({ event }: { event: PublicEvent }) {
                 className={bigInput}
               />
             </Field>
-            <Field label="E-post" htmlFor="guest-email" optional hint="Bare arrangøren ser den.">
+            <Field label={messages.common.email} htmlFor="guest-email" optional hint={t.emailHint}>
               <Input
                 id="guest-email"
                 type="email"
@@ -169,18 +171,18 @@ export function PublicEventView({ event }: { event: PublicEvent }) {
             {/* Honningfelle: usynlig for folk, fristende for roboter. */}
             <div aria-hidden="true" className="absolute -left-[9999px] size-0 overflow-hidden">
               <label>
-                Nettside
+                {t.honeypot}
                 <input tabIndex={-1} autoComplete="off" name="website" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
               </label>
             </div>
             <Button type="submit" disabled={submitting || !contact.name.trim()} className="h-12 w-full text-base">
               {submitting && <Loader2 className="animate-spin" />}
-              Meld meg på
+              {t.signUp}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              Les mer i{" "}
-              <Link href="/personvern" className="font-medium text-primary underline-offset-4 hover:underline">
-                personvernerklæringen
+              {t.readMore}{" "}
+              <Link href={PATHS[lang].privacy} className="font-medium text-primary underline-offset-4 hover:underline">
+                {t.privacyLink}
               </Link>
               .
             </p>
@@ -191,10 +193,10 @@ export function PublicEventView({ event }: { event: PublicEvent }) {
       <ConfirmDialog
         open={cancelTask !== null}
         onOpenChange={(open) => !open && setCancelTask(null)}
-        title="Melde deg av?"
-        description={`Du fjernes fra «${cancelTask?.title ?? ""}», og plassen blir ledig for andre.`}
-        confirmLabel="Ja, meld meg av"
-        cancelLabel="Nei, behold"
+        title={t.cancelTitle}
+        description={t.cancelText(cancelTask?.title ?? "")}
+        confirmLabel={t.cancelYes}
+        cancelLabel={t.cancelNo}
         destructive
         onConfirm={confirmCancel}
       />

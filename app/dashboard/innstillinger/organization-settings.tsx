@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Field, bigInput } from "@/components/field";
+import { useT } from "@/components/i18n-provider";
 import type { OrgMember } from "@/lib/data";
 import type { Organization } from "@/lib/types";
 import { addOrgAdmin, removeOrgMember, renameOrganization } from "../actions";
@@ -20,6 +21,8 @@ interface Props {
 
 export function OrganizationSettings({ organization, members, currentUserId }: Props) {
   const router = useRouter();
+  const messages = useT();
+  const t = messages.settings;
   const [name, setName] = useState(organization.name);
   const [email, setEmail] = useState("");
   const [removing, setRemoving] = useState<OrgMember | null>(null);
@@ -38,7 +41,7 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
         toast.error(result.error);
         return;
       }
-      toast.success("Navnet er lagret");
+      toast.success(t.nameSaved);
       router.refresh();
     });
   }
@@ -51,7 +54,7 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
         toast.error(result.error);
         return;
       }
-      toast.success("Administrator lagt til");
+      toast.success(t.adminAdded);
       setEmail("");
       router.refresh();
     });
@@ -65,7 +68,7 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
       toast.error(result.error);
       return false;
     }
-    toast.success(leaving ? "Du har forlatt organisasjonen" : "Administratoren er fjernet");
+    toast.success(leaving ? t.left : t.adminRemoved);
     if (leaving) router.push("/dashboard");
     router.refresh();
   }
@@ -78,7 +81,7 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
   return (
     <section className="space-y-6 rounded-2xl bg-background p-5 ring-1 ring-foreground/10">
       <form onSubmit={rename} className="space-y-3">
-        <Field label="Navn på organisasjonen" htmlFor={`org-name-${domId}`} hint="Vises til alle som åpner en påmeldingslenke.">
+        <Field label={t.orgName} htmlFor={`org-name-${domId}`} hint={t.orgNameHint}>
           <div className="flex gap-2">
             <Input
               id={`org-name-${domId}`}
@@ -94,7 +97,7 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
               disabled={renamePending || !name.trim() || name.trim() === organization.name}
               className="h-11 shrink-0"
             >
-              {renamePending && <Loader2 className="animate-spin" />} Lagre
+              {renamePending && <Loader2 className="animate-spin" />} {messages.common.save}
             </Button>
           </div>
         </Field>
@@ -102,8 +105,8 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
 
       <div className="space-y-3">
         <div>
-          <h2 className="font-semibold">Administratorer</h2>
-          <p className="text-sm text-muted-foreground">Alle her kan opprette og endre arrangementer for {organization.name}.</p>
+          <h2 className="font-semibold">{t.admins}</h2>
+          <p className="text-sm text-muted-foreground">{t.adminsHint(organization.name)}</p>
         </div>
         <ul className="divide-y rounded-xl ring-1 ring-foreground/10">
           {members.map((member) => (
@@ -111,8 +114,8 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">{member.email}</span>
                 <span className="block text-xs text-muted-foreground">
-                  {member.role === "owner" ? "Eier" : "Administrator"}
-                  {member.user_id === currentUserId && " · deg"}
+                  {member.role === "owner" ? t.owner : t.admin}
+                  {member.user_id === currentUserId && t.you}
                 </span>
               </span>
               {canRemove(member) && (
@@ -120,7 +123,7 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
                   variant="ghost"
                   size="icon"
                   onClick={() => setRemoving(member)}
-                  aria-label={member.user_id === currentUserId ? "Forlat organisasjonen" : `Fjern ${member.email}`}
+                  aria-label={member.user_id === currentUserId ? t.leave : t.remove(member.email)}
                   className="shrink-0 text-muted-foreground"
                 >
                   <X />
@@ -132,9 +135,9 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
 
         <form onSubmit={add} className="space-y-1.5">
           <Field
-            label="Legg til administrator"
+            label={t.addAdmin}
             htmlFor={`org-admin-${domId}`}
-            hint="Personen må først ha opprettet en ViStiller-konto med denne e-postadressen."
+            hint={t.addAdminHint}
           >
             <div className="flex gap-2">
               <Input
@@ -143,12 +146,12 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
                 inputMode="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="navn@eksempel.no"
+                placeholder={t.emailPlaceholder}
                 required
                 className={bigInput}
               />
               <Button type="submit" disabled={addPending || !email.trim()} className="h-11 shrink-0">
-                {addPending ? <Loader2 className="animate-spin" /> : <UserPlus />} Legg til
+                {addPending ? <Loader2 className="animate-spin" /> : <UserPlus />} {messages.common.add}
               </Button>
             </div>
           </Field>
@@ -158,13 +161,13 @@ export function OrganizationSettings({ organization, members, currentUserId }: P
       <ConfirmDialog
         open={removing !== null}
         onOpenChange={(open) => !open && setRemoving(null)}
-        title={removing?.user_id === currentUserId ? "Forlate organisasjonen?" : "Fjerne administratoren?"}
+        title={removing?.user_id === currentUserId ? t.confirmLeave : t.confirmRemove}
         description={
           removing?.user_id === currentUserId
-            ? `Du mister tilgangen til alle arrangementene til ${organization.name}.`
-            : `${removing?.email ?? ""} mister tilgangen til arrangementene til ${organization.name}.`
+            ? t.confirmLeaveText(organization.name)
+            : t.confirmRemoveText(removing?.email ?? "", organization.name)
         }
-        confirmLabel={removing?.user_id === currentUserId ? "Ja, forlat" : "Ja, fjern"}
+        confirmLabel={removing?.user_id === currentUserId ? t.yesLeave : messages.common.yesRemove}
         destructive
         onConfirm={confirmRemove}
       />

@@ -57,11 +57,11 @@ export function AuthForm({ mode, lang = "nb" }: { mode: "login" | "register"; la
       {!isLogin && (
         <p className="text-center text-xs text-muted-foreground">
           {t.acceptPrefix}
-          <Link href="/vilkar" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href={t.termsHref} className="font-medium text-primary underline-offset-4 hover:underline">
             {t.terms}
           </Link>
           {t.readAlso}
-          <Link href="/personvern" className="font-medium text-primary underline-offset-4 hover:underline">
+          <Link href={t.privacyHref} className="font-medium text-primary underline-offset-4 hover:underline">
             {t.privacy}
           </Link>
           .

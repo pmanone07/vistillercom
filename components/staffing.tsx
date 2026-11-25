@@ -1,8 +1,12 @@
+"use client";
+
 import { CheckCircle2, Users } from "lucide-react";
+import { useT } from "@/components/i18n-provider";
 import { cn } from "@/lib/utils";
 
 /** «3 av 5» med fremdriftslinje. Grønn når oppgaven er fylt, ellers gul. */
 export function StaffingBar({ taken, capacity, className }: { taken: number; capacity: number; className?: string }) {
+  const t = useT().staffing;
   const full = taken >= capacity;
   const percent = capacity > 0 ? Math.min((taken / capacity) * 100, 100) : 0;
   return (
@@ -10,7 +14,7 @@ export function StaffingBar({ taken, capacity, className }: { taken: number; cap
       <div className="flex items-center justify-between gap-3 text-sm">
         <span className="inline-flex items-center gap-1.5 font-medium tabular-nums">
           <Users className="size-4 text-muted-foreground" aria-hidden />
-          {taken} av {capacity}
+          {t.of(taken, capacity)}
         </span>
         <StaffingBadge taken={taken} capacity={capacity} />
       </div>
@@ -19,7 +23,7 @@ export function StaffingBar({ taken, capacity, className }: { taken: number; cap
         aria-valuemin={0}
         aria-valuemax={capacity}
         aria-valuenow={Math.min(taken, capacity)}
-        aria-label={`${taken} av ${capacity} plasser fylt`}
+        aria-label={t.filledAria(taken, capacity)}
         className="h-2 overflow-hidden rounded-full bg-muted"
       >
         <div
@@ -32,17 +36,18 @@ export function StaffingBar({ taken, capacity, className }: { taken: number; cap
 }
 
 export function StaffingBadge({ taken, capacity }: { taken: number; capacity: number }) {
+  const t = useT().staffing;
   const missing = Math.max(capacity - taken, 0);
   if (missing === 0) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">
-        <CheckCircle2 className="size-3.5" aria-hidden /> Fullt
+        <CheckCircle2 className="size-3.5" aria-hidden /> {t.full}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">
-      {missing} {missing === 1 ? "ledig plass" : "ledige plasser"}
+      {t.free(missing)}
     </span>
   );
 }

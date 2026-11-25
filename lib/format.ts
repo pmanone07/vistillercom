@@ -1,9 +1,18 @@
+import { getMessages, type Lang } from "@/lib/i18n";
+
 // All tid vises og tolkes som norsk tid, uansett hvor serveren står.
+// Datoene skrives på norsk eller engelsk (britisk: 24-timers klokke, dag før måned).
 const TZ = "Europe/Oslo";
 
-const dateFmt = new Intl.DateTimeFormat("nb-NO", { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" });
-const shortDateFmt = new Intl.DateTimeFormat("nb-NO", { timeZone: TZ, day: "numeric", month: "short", year: "numeric" });
-const timeFmt = new Intl.DateTimeFormat("nb-NO", { timeZone: TZ, hour: "2-digit", minute: "2-digit" });
+function formatters(lang: Lang) {
+  const locale = getMessages(lang).locale;
+  return {
+    date: new Intl.DateTimeFormat(locale, { timeZone: TZ, weekday: "long", day: "numeric", month: "long", year: "numeric" }),
+    short: new Intl.DateTimeFormat(locale, { timeZone: TZ, day: "numeric", month: "short", year: "numeric" }),
+    time: new Intl.DateTimeFormat(locale, { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }),
+  };
+}
+const FMT = { nb: formatters("nb"), en: formatters("en") };
 const partsFmt = new Intl.DateTimeFormat("en-US", {
   timeZone: TZ,
   hourCycle: "h23",
@@ -19,31 +28,33 @@ function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function formatDate(iso: string) {
-  return capitalize(dateFmt.format(new Date(iso)));
+export function formatDate(iso: string, lang: Lang = "nb") {
+  return capitalize(FMT[lang].date.format(new Date(iso)));
 }
 
-export function formatShortDate(iso: string) {
-  return shortDateFmt.format(new Date(iso));
+export function formatShortDate(iso: string, lang: Lang = "nb") {
+  return FMT[lang].short.format(new Date(iso));
 }
 
-export function formatTime(iso: string) {
-  return timeFmt.format(new Date(iso)).replace(".", ":");
+export function formatTime(iso: string, lang: Lang = "nb") {
+  return FMT[lang].time.format(new Date(iso)).replace(".", ":");
 }
 
-/** «Lørdag 15. juni 2027 kl. 17:00–20:00» */
-export function formatEventWhen(startsAt: string, endsAt?: string | null) {
-  const start = `${formatDate(startsAt)} kl. ${formatTime(startsAt)}`;
+/** «Lørdag 15. juni 2027 kl. 17:00–20:00» / «Saturday 15 June 2027 at 17:00–20:00» */
+export function formatEventWhen(startsAt: string, endsAt?: string | null, lang: Lang = "nb") {
+  const at = getMessages(lang).format.at;
+  const start = `${formatDate(startsAt, lang)} ${at} ${formatTime(startsAt, lang)}`;
   if (!endsAt) return start;
-  if (osloParts(startsAt).date === osloParts(endsAt).date) return `${start}–${formatTime(endsAt)}`;
-  return `${start} – ${formatDate(endsAt)} kl. ${formatTime(endsAt)}`;
+  if (osloParts(startsAt).date === osloParts(endsAt).date) return `${start}–${formatTime(endsAt, lang)}`;
+  return `${start} – ${formatDate(endsAt, lang)} ${at} ${formatTime(endsAt, lang)}`;
 }
 
 /** «17:00–19:00», «fra 17:00» eller null. */
-export function formatTimeRange(startsAt?: string | null, endsAt?: string | null) {
-  if (startsAt && endsAt) return `${formatTime(startsAt)}–${formatTime(endsAt)}`;
-  if (startsAt) return `fra ${formatTime(startsAt)}`;
-  if (endsAt) return `til ${formatTime(endsAt)}`;
+export function formatTimeRange(startsAt?: string | null, endsAt?: string | null, lang: Lang = "nb") {
+  const t = getMessages(lang).format;
+  if (startsAt && endsAt) return `${formatTime(startsAt, lang)}–${formatTime(endsAt, lang)}`;
+  if (startsAt) return t.from(formatTime(startsAt, lang));
+  if (endsAt) return t.until(formatTime(endsAt, lang));
   return null;
 }
 

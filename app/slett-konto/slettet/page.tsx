@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function AccountDeletedPage() {
   return (
-    <LegalPage title="Kontoen er slettet">
+    <LegalPage title="Kontoen er slettet" page="accountDeleted">
       <div className="flex flex-col items-start gap-4">
         <p className="flex items-start gap-2 text-lg">
           <CheckCircle2 className="mt-1 size-5 shrink-0 text-primary" aria-hidden />

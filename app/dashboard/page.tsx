@@ -10,6 +10,8 @@ import { StaffingBar } from "@/components/staffing";
 import { requireUser } from "@/lib/auth";
 import { getEventSummaries, getOrganizations, type EventSummary } from "@/lib/data";
 import { formatEventWhen } from "@/lib/format";
+import { getMessages, type Lang } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { cn } from "@/lib/utils";
 import { Onboarding } from "./onboarding";
@@ -25,11 +27,12 @@ export default function DashboardPage() {
 
 async function Overview() {
   await requireUser();
-  const [organizations, events] = await Promise.all([getOrganizations(), getEventSummaries()]);
+  const [organizations, events, lang] = await Promise.all([getOrganizations(), getEventSummaries(), getLang()]);
   if (organizations.length === 0) return <Onboarding />;
   // Betalingsmur: uten aktivt medlemskap i noen organisasjon går man til betaling.
   if (!organizations.some((o) => o.hasAccess)) redirect("/dashboard/medlemskap");
   const unpaid = organizations.filter((o) => !o.hasAccess);
+  const t = getMessages(lang).dashboard;
 
   const upcoming = events.filter((e) => !e.over);
   const past = events.filter((e) => e.over).reverse();
@@ -44,8 +47,8 @@ async function Overview() {
       {/* Bemanningstallene følger med når folk melder seg på. */}
       <AutoRefresh intervalMs={20_000} />
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{showOrg ? "Dine arrangementer" : organizations[0].name}</h1>
-        <p className="text-sm text-muted-foreground">Oversikt over arrangementer og hvem som stiller.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{showOrg ? t.yourEvents : organizations[0].name}</h1>
+        <p className="text-sm text-muted-foreground">{t.subtitle}</p>
       </div>
 
       {unpaid.length > 0 && (
@@ -54,34 +57,34 @@ async function Overview() {
           className="flex items-center gap-3 rounded-2xl bg-amber-50 p-4 text-sm text-amber-950 ring-1 ring-amber-200"
         >
           <span className="flex-1">
-            <span className="font-semibold">{unpaid.map((o) => o.name).join(", ")}</span> mangler aktivt medlemskap.
+            <span className="font-semibold">{unpaid.map((o) => o.name).join(", ")}</span> {t.missingMembership}
           </span>
           <ChevronRight className="size-5 shrink-0" aria-hidden />
         </Link>
       )}
 
       <dl className="grid grid-cols-3 gap-3">
-        <Stat label="Kommende" value={upcoming.length} />
-        <Stat label="Påmeldte" value={signedUp} />
-        <Stat label="Mangler folk" value={missing} tone={missing > 0 ? "warn" : "ok"} />
+        <Stat label={t.upcoming} value={upcoming.length} />
+        <Stat label={t.signedUp} value={signedUp} />
+        <Stat label={t.missingPeople} value={missing} tone={missing > 0 ? "warn" : "ok"} />
       </dl>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Kommende</h2>
+        <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">{t.upcoming}</h2>
         {upcoming.length === 0 ? (
           <div className="rounded-2xl border border-dashed bg-background p-8 text-center">
             <CalendarPlus className="mx-auto mb-3 size-8 text-muted-foreground" aria-hidden />
-            <p className="font-semibold">Ingen kommende arrangementer</p>
-            <p className="mt-1 mb-4 text-sm text-muted-foreground">Opprett ett, legg inn oppgaver og del lenken.</p>
+            <p className="font-semibold">{t.noUpcoming}</p>
+            <p className="mt-1 mb-4 text-sm text-muted-foreground">{t.noUpcomingHint}</p>
             <Link href="/dashboard/events/new" className={cn(buttonVariants(), "h-12 px-5 text-base")}>
-              Opprett arrangement
+              {t.createEvent}
             </Link>
           </div>
         ) : (
           <ul className="space-y-3">
             {upcoming.map((event) => (
               <li key={event.id}>
-                <EventCard event={event} orgName={showOrg ? orgName.get(event.organization_id) : undefined} />
+                <EventCard lang={lang} event={event} orgName={showOrg ? orgName.get(event.organization_id) : undefined} />
               </li>
             ))}
           </ul>
@@ -90,15 +93,20 @@ async function Overview() {
 
       {past.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Tidligere</h2>
+          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">{t.past}</h2>
           <ul className="space-y-3">
             {past.map((event) => (
               <li key={event.id}>
-                <EventCard event={event} orgName={showOrg ? orgName.get(event.organization_id) : undefined} past />
+                <EventCard
+                  lang={lang}
+                  event={event}
+                  orgName={showOrg ? orgName.get(event.organization_id) : undefined}
+                  past
+                />
               </li>
             ))}
           </ul>
-          <p className="text-sm text-muted-foreground">Åpne et tidligere arrangement for å kopiere det til et nytt.</p>
+          <p className="text-sm text-muted-foreground">{t.copyHint}</p>
         </section>
       )}
     </div>
@@ -122,7 +130,8 @@ function Stat({ label, value, tone }: { label: string; value: number; tone?: "wa
   );
 }
 
-function EventCard({ event, orgName, past }: { event: EventSummary; orgName?: string; past?: boolean }) {
+function EventCard({ event, orgName, past, lang }: { event: EventSummary; orgName?: string; past?: boolean; lang: Lang }) {
+  const t = getMessages(lang).dashboard;
   return (
     <Link
       href={`/dashboard/events/${event.id}`}
@@ -133,7 +142,7 @@ function EventCard({ event, orgName, past }: { event: EventSummary; orgName?: st
           {orgName && <p className="text-xs font-medium text-muted-foreground">{orgName}</p>}
           <h3 className="text-base leading-snug font-semibold">{event.title}</h3>
           <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-            <CalendarDays className="size-4 shrink-0" aria-hidden /> {formatEventWhen(event.starts_at, event.ends_at)}
+            <CalendarDays className="size-4 shrink-0" aria-hidden /> {formatEventWhen(event.starts_at, event.ends_at, lang)}
           </p>
           {event.location && (
             <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -144,24 +153,20 @@ function EventCard({ event, orgName, past }: { event: EventSummary; orgName?: st
         <ChevronRight className="mt-1 size-5 shrink-0 text-muted-foreground" aria-hidden />
       </div>
       {event.taskCount === 0 ? (
-        <p className="mt-3 text-sm text-amber-800">Ingen oppgaver lagt inn ennå.</p>
+        <p className="mt-3 text-sm text-amber-800">{t.noTasks}</p>
       ) : past ? (
-        <p className="mt-3 text-sm text-muted-foreground">
-          {event.taken} av {event.capacity} plasser ble fylt.
-        </p>
+        <p className="mt-3 text-sm text-muted-foreground">{t.filled(event.taken, event.capacity)}</p>
       ) : (
         <StaffingBar className="mt-3" taken={event.taken} capacity={event.capacity} />
       )}
-      {event.status === "closed" && !past && (
-        <p className="mt-2 text-xs font-medium text-muted-foreground">Påmeldingen er stengt</p>
-      )}
+      {event.status === "closed" && !past && <p className="mt-2 text-xs font-medium text-muted-foreground">{t.closed}</p>}
     </Link>
   );
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true" aria-label="Laster oversikten">
+    <div className="space-y-4" aria-busy="true">
       <Skeleton className="h-8 w-1/2" />
       <div className="grid grid-cols-3 gap-3">
         <Skeleton className="h-16 rounded-2xl" />

@@ -6,18 +6,22 @@ import { SetupNotice } from "@/components/setup-notice";
 import { requireUser } from "@/lib/auth";
 import { isBillingEnabled } from "@/lib/billing";
 import { getOrganizations } from "@/lib/data";
+import { getT } from "@/lib/i18n-server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { MembershipView } from "./membership-view";
 
-export const metadata: Metadata = { title: "Medlemskap" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT()).membership.title };
+}
 
-export default function MembershipPage({ searchParams }: PageProps<"/dashboard/medlemskap">) {
+export default async function MembershipPage({ searchParams }: PageProps<"/dashboard/medlemskap">) {
   if (!isSupabaseConfigured) return <SetupNotice />;
+  const t = (await getT()).membership;
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Medlemskap</h1>
-        <p className="text-sm text-muted-foreground">Pris, betaling og abonnement for organisasjonen din.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t.title}</h1>
+        <p className="text-sm text-muted-foreground">{t.subtitle}</p>
       </div>
       <Suspense fallback={<Skeleton className="h-96 rounded-2xl" />}>
         <Loader searchParams={searchParams} />

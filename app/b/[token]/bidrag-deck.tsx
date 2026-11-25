@@ -12,6 +12,7 @@ import { EventInfo, SignupClosedNotice } from "@/components/public/event-info";
 import { TaskCard } from "@/components/public/task-card";
 import { useAutoRefresh } from "@/components/public/use-auto-refresh";
 import { useGuestSignups } from "@/components/public/use-guest-signups";
+import { useT } from "@/components/i18n-provider";
 import { getGuestContact, setGuestContact, setGuestToken } from "@/lib/guest";
 import { cn, copyToClipboard } from "@/lib/utils";
 import type { MySignups, PublicTask } from "@/lib/types";
@@ -30,6 +31,9 @@ const subscribeNever = () => () => {};
 export function BidragDeck({ token, data }: { token: string; data: MySignups }) {
   const { event } = data;
   const { busyTaskId, signUp, cancel } = useGuestSignups(event.slug);
+  const messages = useT();
+  const t = messages.bidrag;
+  const pt = messages.public;
   const wrapRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
   const [cancelTask, setCancelTask] = useState<PublicTask | null>(null);
@@ -88,16 +92,16 @@ export function BidragDeck({ token, data }: { token: string; data: MySignups }) 
   async function copyLink() {
     if (await copyToClipboard(link)) {
       setCopied(true);
-      toast.success("Lenken er kopiert");
+      toast.success(messages.common.linkCopied);
       setTimeout(() => setCopied(false), 2000);
     } else {
-      toast.error("Kunne ikke kopiere. Marker lenken og kopier den selv.");
+      toast.error(messages.common.copyFailed);
     }
   }
 
   async function shareLink() {
     try {
-      await navigator.share({ title: `Mine bidrag – ${event.title}`, url: link });
+      await navigator.share({ title: t.shareTitle(event.title), url: link });
     } catch {
       // Delingsmenyen ble lukket.
     }
@@ -113,23 +117,23 @@ export function BidragDeck({ token, data }: { token: string; data: MySignups }) 
   const sections: { id: string; title: string; count?: number; body: React.ReactNode }[] = [
     {
       id: "mine",
-      title: "Mine oppgaver",
+      title: t.myTasks,
       count: mine.length,
       body: (
         <div className="space-y-4">
           <EventInfo event={event} compact />
           {mine.length === 0 ? (
             <div className="rounded-2xl border border-dashed p-6 text-center">
-              <p className="font-semibold">Du står ikke på noen oppgaver nå</p>
-              <p className="mt-1 mb-4 text-sm text-muted-foreground">Vil du bidra likevel? Se hva som fortsatt trengs.</p>
+              <p className="font-semibold">{t.noneTitle}</p>
+              <p className="mt-1 mb-4 text-sm text-muted-foreground">{t.noneHint}</p>
               <Button onClick={() => goTo(1)} className="h-11">
-                Se ledige oppgaver <ArrowRight />
+                {t.seeOpen} <ArrowRight />
               </Button>
             </div>
           ) : (
             <>
               <p className="text-sm text-muted-foreground">
-                Takk, {data.participant_name.split(" ")[0]}! Dette har du sagt ja til:
+                {t.thanks(data.participant_name.split(" ")[0])}
               </p>
               <ul className="space-y-3">
                 {mine.map((task) => (
@@ -152,7 +156,7 @@ export function BidragDeck({ token, data }: { token: string; data: MySignups }) 
     },
     {
       id: "ledige",
-      title: "Ledige oppgaver",
+      title: t.openTasks,
       count: available.length,
       body: (
         <div className="space-y-4">
@@ -160,14 +164,14 @@ export function BidragDeck({ token, data }: { token: string; data: MySignups }) 
           {available.length === 0 ? (
             <div className="rounded-2xl bg-emerald-50 p-6 text-center ring-1 ring-emerald-200">
               <CheckCircle2 className="mx-auto mb-2 size-8 text-emerald-700" aria-hidden />
-              <p className="font-semibold">Alt er dekket!</p>
-              <p className="text-sm text-muted-foreground">Takk til alle som stiller opp.</p>
+              <p className="font-semibold">{t.allCovered}</p>
+              <p className="text-sm text-muted-foreground">{t.thanksAll}</p>
             </div>
           ) : (
             <>
               {event.signup_open && (
                 <p className="text-sm text-muted-foreground">
-                  Ett trykk, så står du på som {data.participant_name}.
+                  {t.oneTap(data.participant_name)}
                 </p>
               )}
               <ul className="space-y-3">
@@ -198,17 +202,14 @@ export function BidragDeck({ token, data }: { token: string; data: MySignups }) 
     },
     {
       id: "lenke",
-      title: "Min lenke",
+      title: t.myLink,
       body: (
         <div className="space-y-4">
           <div className="flex gap-3 rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-4">
             <Bookmark className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
             <div className="text-sm">
-              <p className="font-semibold">Ta vare på denne lenken</p>
-              <p className="text-muted-foreground">
-                Den er din private inngang til å se, legge til eller melde deg av oppgaver – også fra en annen mobil
-                eller PC. Den er lagret på denne enheten.
-              </p>
+              <p className="font-semibold">{t.keepTitle}</p>
+              <p className="text-muted-foreground">{t.keepText}</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -216,20 +217,20 @@ export function BidragDeck({ token, data }: { token: string; data: MySignups }) 
               readOnly
               value={link}
               onFocus={(e) => e.currentTarget.select()}
-              aria-label="Din private lenke"
+              aria-label={t.linkLabel}
               className="h-11 font-mono text-xs"
             />
             <Button variant="outline" onClick={copyLink} className="h-11 shrink-0 px-3">
-              {copied ? <Check /> : <Copy />} Kopier
+              {copied ? <Check /> : <Copy />} {messages.common.copy}
             </Button>
           </div>
           {canShare && (
             <Button variant="outline" onClick={shareLink} className="h-11 w-full">
-              <Share2 /> Send lenken til meg selv
+              <Share2 /> {t.sendToSelf}
             </Button>
           )}
           <Link href={`/e/${event.slug}`} className={cn(buttonVariants({ variant: "ghost" }), "h-11 w-full")}>
-            Se hele arrangementet <ArrowRight />
+            {t.seeEvent} <ArrowRight />
           </Link>
         </div>
       ),
@@ -281,15 +282,15 @@ export function BidragDeck({ token, data }: { token: string; data: MySignups }) 
         stackOffset={TAB}
         peek
         pageHeight={`calc(100dvh - ${(PAGE_COUNT - 1) * TAB}px)`}
-        aria-label="Mine bidrag"
+        aria-label={t.pageTitle}
       />
       <ConfirmDialog
         open={cancelTask !== null}
         onOpenChange={(open) => !open && setCancelTask(null)}
-        title="Melde deg av?"
-        description={`Du fjernes fra «${cancelTask?.title ?? ""}», og plassen blir ledig for andre.`}
-        confirmLabel="Ja, meld meg av"
-        cancelLabel="Nei, behold"
+        title={pt.cancelTitle}
+        description={pt.cancelText(cancelTask?.title ?? "")}
+        confirmLabel={pt.cancelYes}
+        cancelLabel={pt.cancelNo}
         destructive
         onConfirm={confirmCancel}
       />

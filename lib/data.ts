@@ -94,7 +94,8 @@ export async function getEventWithTasks(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("events")
-    .select(`${EVENT_COLUMNS}, organizations(name), tasks(${TASK_COLUMNS}, signups(${SIGNUP_COLUMNS}))`)
+    // «*» tar med språket (events.language) når migreringen er kjørt, uten å feile før.
+    .select(`*, organizations(name), tasks(${TASK_COLUMNS}, signups(${SIGNUP_COLUMNS}))`)
     .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(error.message);

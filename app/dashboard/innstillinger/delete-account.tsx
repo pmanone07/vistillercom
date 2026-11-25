@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Loader2, Trash2 } from "lucide-react";
+import { Check, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,8 +13,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { DELETE_CONFIRMATION } from "@/lib/legal";
+import { useLang, useT } from "@/components/i18n-provider";
+import { chooseLangHref, PATHS, type Lang } from "@/lib/i18n";
 import type { DeletionPlan } from "@/lib/account";
+import { cn } from "@/lib/utils";
 import { deleteMyAccount } from "./actions";
 
 interface Props {
@@ -24,19 +26,62 @@ interface Props {
   contactEmail: string;
 }
 
+const LANGUAGES: { lang: Lang; label: string }[] = [
+  { lang: "nb", label: "Norsk" },
+  { lang: "en", label: "English" },
+];
+
+/** Språkvalg for arrangøren. Lagres på enheten (via /sprak) og gjelder hele ViStiller. */
+export function LanguageSettings() {
+  const lang = useLang();
+  const t = useT().settings;
+  return (
+    <section className="space-y-3 rounded-2xl bg-background p-5 ring-1 ring-foreground/10">
+      <div>
+        <h2 className="font-semibold">{t.languageTitle}</h2>
+        <p className="text-sm text-muted-foreground">{t.languageHint}</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {LANGUAGES.map((option) => {
+          const active = option.lang === lang;
+          return (
+            <a
+              key={option.lang}
+              href={chooseLangHref(option.lang, "/dashboard/innstillinger")}
+              lang={option.lang}
+              hrefLang={option.lang}
+              aria-current={active ? "true" : undefined}
+              className={cn(
+                "inline-flex h-11 items-center gap-2 rounded-lg px-4 text-sm font-medium ring-1 transition-colors",
+                active ? "bg-primary/10 text-primary ring-primary/30" : "ring-foreground/15 hover:bg-muted",
+              )}
+            >
+              {active && <Check className="size-4" aria-hidden />}
+              {option.label}
+            </a>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function AccountSettings({ email, plan, contactEmail }: Props) {
+  const lang = useLang();
+  const messages = useT();
+  const t = messages.account;
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const confirmed = confirmation.trim().toUpperCase() === DELETE_CONFIRMATION;
+  const confirmed = confirmation.trim().toUpperCase() === t.confirmWord;
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!confirmed) return;
     setError(null);
     start(async () => {
-      // Ved suksess sender serveren oss videre til /slett-konto/slettet.
+      // Ved suksess sender serveren oss videre til siden som bekrefter slettingen.
       const result = await deleteMyAccount(confirmation);
       if (!result.ok) setError(result.error);
     });
@@ -45,40 +90,38 @@ export function AccountSettings({ email, plan, contactEmail }: Props) {
   return (
     <section id="konto" className="scroll-mt-20 space-y-4 rounded-2xl bg-background p-5 ring-1 ring-foreground/10">
       <div>
-        <h2 className="font-semibold">Konto</h2>
-        <p className="text-sm text-muted-foreground">Innlogget som {email}</p>
+        <h2 className="font-semibold">{t.title}</h2>
+        <p className="text-sm text-muted-foreground">{t.signedInAs(email)}</p>
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-        <Link href="/vilkar" className="font-medium text-primary underline-offset-4 hover:underline">
-          Brukervilkår
+        <Link href={PATHS[lang].terms} className="font-medium text-primary underline-offset-4 hover:underline">
+          {t.terms}
         </Link>
-        <Link href="/personvern" className="font-medium text-primary underline-offset-4 hover:underline">
-          Personvernerklæring
+        <Link href={PATHS[lang].privacy} className="font-medium text-primary underline-offset-4 hover:underline">
+          {t.privacy}
         </Link>
-        <Link href="/slett-konto" className="font-medium text-primary underline-offset-4 hover:underline">
-          Om sletting av konto
+        <Link href={PATHS[lang].deleteAccount} className="font-medium text-primary underline-offset-4 hover:underline">
+          {t.aboutDeletion}
         </Link>
       </div>
 
       <div className="space-y-3 rounded-xl bg-destructive/5 p-4 ring-1 ring-destructive/20">
         <div>
-          <h3 className="font-semibold">Slett kontoen</h3>
-          <p className="text-sm text-muted-foreground">
-            Kontoen og personopplysningene dine slettes permanent. Dette kan ikke angres.
-          </p>
+          <h3 className="font-semibold">{t.deleteTitle}</h3>
+          <p className="text-sm text-muted-foreground">{t.deleteText}</p>
         </div>
         {plan ? (
           <Button variant="destructive" className="h-11" onClick={() => setOpen(true)}>
-            <Trash2 /> Slett kontoen min
+            <Trash2 /> {t.deleteButton}
           </Button>
         ) : (
           <p className="text-sm">
-            Send e-post til{" "}
+            {t.mailPrefix}{" "}
             <a href={`mailto:${contactEmail}`} className="font-medium text-primary underline underline-offset-4">
               {contactEmail}
             </a>{" "}
-            fra {email}, så sletter vi kontoen for deg.
+            {t.mailSuffix(email)}
           </p>
         )}
       </div>
@@ -98,42 +141,37 @@ export function AccountSettings({ email, plan, contactEmail }: Props) {
           <DialogContent showCloseButton={false}>
             <form onSubmit={submit} className="contents">
               <DialogHeader>
-                <DialogTitle>Slette kontoen?</DialogTitle>
-                <DialogDescription>
-                  Kontoen {email} slettes permanent, og du blir logget ut. Dette kan ikke angres.
-                </DialogDescription>
+                <DialogTitle>{t.dialogTitle}</DialogTitle>
+                <DialogDescription>{t.dialogText(email)}</DialogDescription>
               </DialogHeader>
 
               <div className="space-y-3 text-sm">
                 {plan.deleted.length > 0 && (
                   <div className="rounded-lg bg-destructive/5 p-3 ring-1 ring-destructive/20">
-                    <p className="font-medium">Dette slettes også, fordi du er eneste administrator:</p>
+                    <p className="font-medium">{t.alsoDeleted}</p>
                     <ul className="mt-1 list-disc pl-5">
                       {plan.deleted.map((org) => (
                         <li key={org.id}>{org.name}</li>
                       ))}
                     </ul>
-                    <p className="mt-1 text-muted-foreground">
-                      Med alle arrangementer, oppgaver og påmeldinger. Et aktivt medlemskap stoppes med en gang,
-                      uten refusjon for resten av perioden.
-                    </p>
+                    <p className="mt-1 text-muted-foreground">{t.alsoDeletedHint}</p>
                   </div>
                 )}
                 {plan.kept.length > 0 && (
                   <div className="rounded-lg bg-muted p-3">
-                    <p className="font-medium">Dette beholdes, fordi andre administrerer det:</p>
+                    <p className="font-medium">{t.kept}</p>
                     <ul className="mt-1 list-disc pl-5">
                       {plan.kept.map((org) => (
                         <li key={org.id}>{org.name}</li>
                       ))}
                     </ul>
-                    <p className="mt-1 text-muted-foreground">Du blir bare fjernet som administrator.</p>
+                    <p className="mt-1 text-muted-foreground">{t.keptHint}</p>
                   </div>
                 )}
 
                 <div className="space-y-1.5">
                   <label htmlFor="delete-confirmation" className="font-medium">
-                    Skriv <span className="font-mono font-bold">{DELETE_CONFIRMATION}</span> for å bekrefte
+                    {t.typePrefix} <span className="font-mono font-bold">{t.confirmWord}</span> {t.typeToConfirm}
                   </label>
                   <Input
                     id="delete-confirmation"
@@ -154,11 +192,11 @@ export function AccountSettings({ email, plan, contactEmail }: Props) {
 
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={pending}>
-                  Avbryt
+                  {messages.common.cancel}
                 </Button>
                 <Button type="submit" variant="destructive" disabled={!confirmed || pending}>
                   {pending && <Loader2 className="animate-spin" />}
-                  Slett kontoen permanent
+                  {t.confirmButton}
                 </Button>
               </DialogFooter>
             </form>

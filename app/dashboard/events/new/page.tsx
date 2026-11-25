@@ -5,16 +5,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SetupNotice } from "@/components/setup-notice";
 import { requireUser } from "@/lib/auth";
 import { getOrganizations } from "@/lib/data";
+import { getT } from "@/lib/i18n-server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { EventForm } from "../event-form";
 
-export const metadata: Metadata = { title: "Nytt arrangement" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT()).eventForm.newTitle };
+}
 
-export default function NewEventPage() {
+export default async function NewEventPage() {
   if (!isSupabaseConfigured) return <SetupNotice />;
+  const t = await getT();
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold tracking-tight">Nytt arrangement</h1>
+      <h1 className="text-2xl font-bold tracking-tight">{t.eventForm.newTitle}</h1>
       <Suspense fallback={<Skeleton className="h-96 rounded-2xl" />}>
         <Loader />
       </Suspense>

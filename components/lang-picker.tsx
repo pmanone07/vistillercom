@@ -1,16 +1,24 @@
-import { chooseLangHref, type AuthLang } from "@/lib/auth-i18n";
+import { chooseLangHref, type Lang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 const OPTIONS = [
-  { lang: "nb", short: "NO", label: "Norsk", to: "/" },
-  { lang: "en", short: "EN", label: "English", to: "/en" },
+  { lang: "nb", short: "NO", label: "Norsk" },
+  { lang: "en", short: "EN", label: "English" },
 ] as const;
 
 /**
- * Språkvalg øverst på forsiden: norsk (/) eller engelsk (/en). Valget huskes
- * (via /sprak), så innloggingen også kommer på riktig språk senere.
+ * Språkvalg (NO | EN). Valget huskes (via /sprak) og sender brukeren til
+ * siden for det språket: forsiden som standard, eller sidene i `to`.
  */
-export function LangPicker({ current, className }: { current: AuthLang; className?: string }) {
+export function LangPicker({
+  current,
+  to = { nb: "/", en: "/en" },
+  className,
+}: {
+  current: Lang;
+  to?: Record<Lang, string>;
+  className?: string;
+}) {
   const item =
     "inline-flex h-8 items-center rounded-full px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
   return (
@@ -23,7 +31,7 @@ export function LangPicker({ current, className }: { current: AuthLang; classNam
         return (
           <a
             key={o.lang}
-            href={chooseLangHref(o.lang, o.to)}
+            href={chooseLangHref(o.lang, to[o.lang])}
             lang={o.lang}
             hrefLang={o.lang}
             aria-label={o.label}

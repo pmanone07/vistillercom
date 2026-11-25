@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Slett konto",
   description: "Slik sletter du ViStiller-kontoen din og personopplysningene som hører til.",
-  alternates: { canonical: "/slett-konto" },
+  alternates: { canonical: "/slett-konto", languages: { nb: "/slett-konto", en: "/en/delete-account" } },
 };
 
 // Offentlig side som Google Play og App Store kan lenke til. Krever ikke innlogging.
@@ -17,6 +17,7 @@ export default function DeleteAccountPage() {
   return (
     <LegalPage
       title="Slett ViStiller-kontoen din"
+      page="deleteAccount"
       intro={
         <p>
           Du kan når som helst slette kontoen din i ViStiller, i appen for Android og iOS eller på vistiller.com.

@@ -1,5 +1,7 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { PATHS } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,7 +16,7 @@ export async function getUser() {
 /** Brukes i alle arrangørsider og server actions. */
 export async function requireUser() {
   const user = await getUser();
-  if (!user) redirect("/login");
+  if (!user) redirect(PATHS[await getLang()].login);
   return user;
 }
 

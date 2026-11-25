@@ -7,6 +7,7 @@ import { Check, Copy, Download, Printer, Share2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useT } from "@/components/i18n-provider";
 import { copyToClipboard, cn } from "@/lib/utils";
 
 interface Props {
@@ -18,13 +19,14 @@ interface Props {
 }
 
 export function ShareDialog({ open, onOpenChange, title, slug, siteUrl }: Props) {
+  const t = useT().shareDialog;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-lg">Del arrangementet</DialogTitle>
+          <DialogTitle className="text-lg">{t.title}</DialogTitle>
           <DialogDescription>
-            Alle med lenken kan se oppgavene og melde seg på – uten å opprette konto.
+            {t.description}
           </DialogDescription>
         </DialogHeader>
         {open && <ShareBody title={title} slug={slug} siteUrl={siteUrl} />}
@@ -35,6 +37,8 @@ export function ShareDialog({ open, onOpenChange, title, slug, siteUrl }: Props)
 
 // Rendres bare i nettleseren (dialogen er åpen), så window er tilgjengelig.
 function ShareBody({ title, slug, siteUrl }: Omit<Props, "open" | "onOpenChange">) {
+  const messages = useT();
+  const t = messages.shareDialog;
   const origin = typeof window === "undefined" ? siteUrl : window.location.origin;
   const url = `${origin}/e/${slug}`;
   const [qr, setQr] = useState<string | null>(null);
@@ -54,16 +58,16 @@ function ShareBody({ title, slug, siteUrl }: Omit<Props, "open" | "onOpenChange"
   async function copy() {
     if (await copyToClipboard(url)) {
       setCopied(true);
-      toast.success("Lenken er kopiert");
+      toast.success(messages.common.linkCopied);
       setTimeout(() => setCopied(false), 2000);
     } else {
-      toast.error("Kunne ikke kopiere. Marker lenken og kopier den selv.");
+      toast.error(messages.common.copyFailed);
     }
   }
 
   async function share() {
     try {
-      await navigator.share({ title, text: `Meld deg på: ${title}`, url });
+      await navigator.share({ title, text: t.shareText(title), url });
     } catch {
       // Brukeren lukket delingsmenyen.
     }
@@ -76,28 +80,28 @@ function ShareBody({ title, slug, siteUrl }: Omit<Props, "open" | "onOpenChange"
           readOnly
           value={url}
           onFocus={(e) => e.currentTarget.select()}
-          aria-label="Lenke til påmeldingen"
+          aria-label={t.linkLabel}
           className="h-11 font-mono text-xs"
         />
-        <Button variant="outline" onClick={copy} className="h-11 shrink-0 px-3" aria-label="Kopier lenken">
-          {copied ? <Check /> : <Copy />} Kopier
+        <Button variant="outline" onClick={copy} className="h-11 shrink-0 px-3" aria-label={t.copyLink}>
+          {copied ? <Check /> : <Copy />} {messages.common.copy}
         </Button>
       </div>
 
       {canShare && (
         <Button onClick={share} className="h-12 w-full text-base">
-          <Share2 /> Del via SMS, Messenger, Spond …
+          <Share2 /> {t.shareVia}
         </Button>
       )}
 
       <div className="rounded-xl bg-muted/60 p-4 text-center">
         {qr ? (
           // eslint-disable-next-line @next/next/no-img-element -- lokal data-URL, ikke noe å optimalisere
-          <img src={qr} alt={`QR-kode til ${title}`} className="mx-auto size-48 rounded-lg bg-white" />
+          <img src={qr} alt={t.qrAlt(title)} className="mx-auto size-48 rounded-lg bg-white" />
         ) : (
           <div className="mx-auto size-48 animate-pulse rounded-lg bg-muted" />
         )}
-        <p className="mt-2 text-sm text-muted-foreground">Skann for å melde seg på. Heng den gjerne opp.</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t.qrHint}</p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <a
             href={qr ?? undefined}
@@ -105,7 +109,7 @@ function ShareBody({ title, slug, siteUrl }: Omit<Props, "open" | "onOpenChange"
             aria-disabled={!qr}
             className={cn(buttonVariants({ variant: "outline" }), "h-11", !qr && "pointer-events-none opacity-50")}
           >
-            <Download /> Last ned
+            <Download /> {t.download}
           </a>
           <a
             href={`/e/${slug}/plakat`}
@@ -113,7 +117,7 @@ function ShareBody({ title, slug, siteUrl }: Omit<Props, "open" | "onOpenChange"
             rel="noopener"
             className={cn(buttonVariants({ variant: "outline" }), "h-11")}
           >
-            <Printer /> Plakat
+            <Printer /> {t.poster}
           </a>
         </div>
       </div>

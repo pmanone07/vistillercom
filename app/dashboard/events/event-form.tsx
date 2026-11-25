@@ -9,7 +9,9 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Field, bigInput } from "@/components/field";
+import { useLang, useT } from "@/components/i18n-provider";
 import { toLocalInput } from "@/lib/format";
+import type { Lang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { EventRow, Organization } from "@/lib/types";
 import { saveEvent } from "../actions";
@@ -20,8 +22,14 @@ interface Props {
   event?: EventRow;
 }
 
+const selectClass =
+  "h-11 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
+
 export function EventForm({ organizations, event }: Props) {
   const router = useRouter();
+  const lang = useLang();
+  const messages = useT();
+  const t = messages.eventForm;
   const [pending, startTransition] = useTransition();
   const [form, setForm] = useState({
     organizationId: event?.organization_id ?? organizations[0]?.id ?? "",
@@ -31,6 +39,8 @@ export function EventForm({ organizations, event }: Props) {
     startsAt: toLocalInput(event?.starts_at),
     endsAt: toLocalInput(event?.ends_at),
     signupDeadline: toLocalInput(event?.signup_deadline),
+    // Nye arrangementer får arrangørens språk. Eldre arrangementer uten språk er norske.
+    language: (event ? (event.language ?? "nb") : lang) as Lang,
   });
   const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }));
@@ -45,7 +55,7 @@ export function EventForm({ organizations, event }: Props) {
         toast.error(result.error);
         return;
       }
-      toast.success(event ? "Endringene er lagret" : "Arrangementet er opprettet");
+      toast.success(event ? t.saved : t.created);
       router.push(`/dashboard/events/${result.data.id}`);
       router.refresh();
     });
@@ -54,13 +64,8 @@ export function EventForm({ organizations, event }: Props) {
   return (
     <form onSubmit={submit} className="space-y-5 rounded-2xl bg-background p-5 ring-1 ring-foreground/10">
       {!event && organizations.length > 1 && (
-        <Field label="Arrangør" htmlFor="organizationId">
-          <select
-            id="organizationId"
-            value={form.organizationId}
-            onChange={set("organizationId")}
-            className="h-11 w-full rounded-lg border border-input bg-transparent px-2.5 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
+        <Field label={t.organizer} htmlFor="organizationId">
+          <select id="organizationId" value={form.organizationId} onChange={set("organizationId")} className={selectClass}>
             {organizations.map((o) => (
               <option key={o.id} value={o.id}>
                 {o.name}
@@ -70,7 +75,7 @@ export function EventForm({ organizations, event }: Props) {
         </Field>
       )}
 
-      <Field label="Navn på arrangementet" htmlFor="title">
+      <Field label={t.title} htmlFor="title">
         <Input
           id="title"
           value={form.title}
@@ -78,29 +83,36 @@ export function EventForm({ organizations, event }: Props) {
           maxLength={120}
           required
           autoFocus={!event}
-          placeholder="Sommeravslutning – 5. klasse"
+          placeholder={t.titlePlaceholder}
           className={bigInput}
         />
       </Field>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <Field label="Starter" htmlFor="startsAt">
+        <Field label={t.starts} htmlFor="startsAt">
           <Input id="startsAt" type="datetime-local" value={form.startsAt} onChange={set("startsAt")} required className={bigInput} />
         </Field>
-        <Field label="Slutter" htmlFor="endsAt" optional>
+        <Field label={t.ends} htmlFor="endsAt" optional>
           <Input id="endsAt" type="datetime-local" value={form.endsAt} onChange={set("endsAt")} min={form.startsAt || undefined} className={bigInput} />
         </Field>
       </div>
 
-      <Field label="Sted" htmlFor="location" optional>
-        <Input id="location" value={form.location} onChange={set("location")} maxLength={200} placeholder="Gymsalen" className={bigInput} />
+      <Field label={t.location} htmlFor="location" optional>
+        <Input
+          id="location"
+          value={form.location}
+          onChange={set("location")}
+          maxLength={200}
+          placeholder={t.locationPlaceholder}
+          className={bigInput}
+        />
       </Field>
 
-      <Field label="Beskrivelse" htmlFor="description" optional hint="Vises øverst på siden deltakerne ser.">
+      <Field label={t.description} htmlFor="description" optional hint={t.descriptionHint}>
         <Textarea id="description" value={form.description} onChange={set("description")} maxLength={2000} rows={3} className="text-base" />
       </Field>
 
-      <Field label="Påmeldingsfrist" htmlFor="signupDeadline" optional hint="Etter fristen kan ingen nye melde seg på.">
+      <Field label={t.deadline} htmlFor="signupDeadline" optional hint={t.deadlineHint}>
         <Input
           id="signupDeadline"
           type="datetime-local"
@@ -110,13 +122,20 @@ export function EventForm({ organizations, event }: Props) {
         />
       </Field>
 
+      <Field label={t.language} htmlFor="language" hint={t.languageHint}>
+        <select id="language" value={form.language} onChange={set("language")} className={selectClass}>
+          <option value="nb">Norsk</option>
+          <option value="en">English</option>
+        </select>
+      </Field>
+
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Link href={backHref} className={cn(buttonVariants({ variant: "outline" }), "h-12 px-5 text-base")}>
-          Avbryt
+          {messages.common.cancel}
         </Link>
         <Button type="submit" disabled={pending} className="h-12 px-5 text-base">
           {pending && <Loader2 className="animate-spin" />}
-          {event ? "Lagre endringer" : "Opprett arrangement"}
+          {event ? t.saveChanges : t.create}
         </Button>
       </div>
     </form>

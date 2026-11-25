@@ -6,16 +6,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SetupNotice } from "@/components/setup-notice";
 import { requireUser } from "@/lib/auth";
 import { getEventWithTasks, getOrganizations } from "@/lib/data";
+import { getT } from "@/lib/i18n-server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { EventForm } from "../../event-form";
 
-export const metadata: Metadata = { title: "Rediger arrangement" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT()).eventForm.editTitle };
+}
 
-export default function EditEventPage({ params }: PageProps<"/dashboard/events/[id]/rediger">) {
+export default async function EditEventPage({ params }: PageProps<"/dashboard/events/[id]/rediger">) {
   if (!isSupabaseConfigured) return <SetupNotice />;
+  const t = await getT();
   return (
     <div className="space-y-5">
-      <h1 className="text-2xl font-bold tracking-tight">Rediger arrangement</h1>
+      <h1 className="text-2xl font-bold tracking-tight">{t.eventForm.editTitle}</h1>
       <Suspense fallback={<Skeleton className="h-96 rounded-2xl" />}>
         <Loader params={params} />
       </Suspense>

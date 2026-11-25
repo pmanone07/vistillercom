@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalPage, Section } from "@/components/legal-page";
+import { LegalPage, Section, Toc } from "@/components/legal-page";
 import { CONTACT_EMAIL, CONTROLLER_NAME, TERMS_UPDATED } from "@/lib/legal";
 import { MEMBERSHIP, showPricing } from "@/lib/membership";
 
 export const metadata: Metadata = {
   title: "Brukervilkår",
   description: "Vilkårene for å bruke ViStiller – for arrangører og deltakere.",
-  alternates: { canonical: "/vilkar" },
+  alternates: { canonical: "/vilkar", languages: { nb: "/vilkar", en: "/en/terms" } },
 };
 
 // Vilkårene beskriver det tjenesten faktisk gjør. Endres medlemskap, sletting
@@ -37,6 +37,7 @@ export default function TermsPage() {
     <LegalPage
       title="Brukervilkår"
       updated={TERMS_UPDATED}
+      page="terms"
       intro={
         <p>
           Disse vilkårene gjelder for bruk av ViStiller på vistiller.com og i appene for Android og iOS. Når du oppretter
@@ -44,18 +45,7 @@ export default function TermsPage() {
         </p>
       }
     >
-      <nav aria-label="Innhold" className="mb-8 rounded-xl bg-muted/60 p-4">
-        <p className="text-sm font-semibold">Innhold</p>
-        <ol className="mt-2 grid list-decimal gap-x-6 gap-y-1 pl-5 text-sm sm:grid-cols-2">
-          {toc.map(([id, label]) => (
-            <li key={id}>
-              <a href={`#${id}`} className="text-primary underline-offset-4 hover:underline">
-                {label}
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
+      <Toc items={toc} label="Innhold" />
 
       <Section id="tjenesten" title="1. Tjenesten og hvem som kan bruke den">
         <p>

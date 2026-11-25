@@ -6,10 +6,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SetupNotice } from "@/components/setup-notice";
 import { requireUser } from "@/lib/auth";
 import { getEventWithTasks, requireOrgAccess } from "@/lib/data";
+import { getT } from "@/lib/i18n-server";
 import { isSupabaseConfigured, siteUrl } from "@/lib/supabase/env";
 import { EventAdmin } from "./event-admin";
 
-export const metadata: Metadata = { title: "Arrangement" };
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: (await getT()).event.pageTitle };
+}
 
 export default function EventPage({ params }: PageProps<"/dashboard/events/[id]">) {
   if (!isSupabaseConfigured) return <SetupNotice />;
@@ -32,7 +35,7 @@ async function Loader({ params }: Pick<PageProps<"/dashboard/events/[id]">, "par
 
 function EventSkeleton() {
   return (
-    <div className="space-y-4" aria-busy="true" aria-label="Laster arrangementet">
+    <div className="space-y-4" aria-busy="true">
       <Skeleton className="h-8 w-2/3" />
       <Skeleton className="h-24 rounded-2xl" />
       <Skeleton className="h-40 rounded-2xl" />

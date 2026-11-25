@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Field, bigInput } from "@/components/field";
+import { useT } from "@/components/i18n-provider";
 import { copyEvent } from "../../actions";
 
 interface Props {
@@ -19,6 +20,8 @@ interface Props {
 
 export function CopyDialog({ open, onOpenChange, eventId, title }: Props) {
   const router = useRouter();
+  const messages = useT();
+  const t = messages.copyDialog;
   const [pending, startTransition] = useTransition();
   const [newTitle, setNewTitle] = useState(title);
   const [startsAt, setStartsAt] = useState("");
@@ -31,7 +34,7 @@ export function CopyDialog({ open, onOpenChange, eventId, title }: Props) {
         toast.error(result.error);
         return;
       }
-      toast.success("Arrangementet er kopiert");
+      toast.success(t.done);
       onOpenChange(false);
       router.push(`/dashboard/events/${result.data.id}`);
     });
@@ -41,16 +44,16 @@ export function CopyDialog({ open, onOpenChange, eventId, title }: Props) {
     <Dialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-lg">Kopier arrangementet</DialogTitle>
+          <DialogTitle className="text-lg">{t.title}</DialogTitle>
           <DialogDescription>
-            Alle oppgavene blir med til det nye arrangementet. Påmeldingene blir ikke kopiert.
+            {t.description}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="space-y-4">
-          <Field label="Navn" htmlFor="copy-title">
+          <Field label={messages.common.name} htmlFor="copy-title">
             <Input id="copy-title" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} maxLength={120} required className={bigInput} />
           </Field>
-          <Field label="Ny dato og klokkeslett" htmlFor="copy-starts">
+          <Field label={t.newDate} htmlFor="copy-starts">
             <Input
               id="copy-starts"
               type="datetime-local"
@@ -62,7 +65,7 @@ export function CopyDialog({ open, onOpenChange, eventId, title }: Props) {
           </Field>
           <Button type="submit" disabled={pending} className="h-12 w-full text-base">
             {pending && <Loader2 className="animate-spin" />}
-            Opprett kopi
+            {t.submit}
           </Button>
         </form>
       </DialogContent>

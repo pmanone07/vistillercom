@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cancelSignup, signUpForTask } from "@/app/e/actions";
+import { useLang, useT } from "@/components/i18n-provider";
 import { setGuestContact, setGuestToken } from "@/lib/guest";
 
 interface SignUpInput {
@@ -20,13 +21,15 @@ interface SignUpInput {
  */
 export function useGuestSignups(slug: string) {
   const router = useRouter();
+  const lang = useLang();
+  const t = useT().public;
   const [busyTaskId, setBusyTaskId] = useState<string | null>(null);
 
   const signUp = useCallback(
     async (input: SignUpInput): Promise<string | null> => {
       setBusyTaskId(input.taskId);
       try {
-        const result = await signUpForTask(input);
+        const result = await signUpForTask({ ...input, lang });
         if (!result.ok) {
           toast.error(result.error);
           router.refresh(); // vis oppdaterte plasser, så man kan velge noe annet
@@ -34,34 +37,34 @@ export function useGuestSignups(slug: string) {
         }
         setGuestToken(slug, result.data.token);
         setGuestContact({ name: input.name.trim(), email: input.email.trim() });
-        toast.success("Du er påmeldt. Takk for at du stiller!");
+        toast.success(t.signedUpToast);
         router.refresh();
         return result.data.token;
       } finally {
         setBusyTaskId(null);
       }
     },
-    [router, slug],
+    [router, slug, lang, t],
   );
 
   const cancel = useCallback(
     async (token: string, taskId: string): Promise<boolean> => {
       setBusyTaskId(taskId);
       try {
-        const result = await cancelSignup({ token, taskId });
+        const result = await cancelSignup({ token, taskId, lang });
         if (!result.ok) {
           toast.error(result.error);
           router.refresh();
           return false;
         }
-        toast.success("Du er meldt av. Plassen er ledig igjen.");
+        toast.success(t.cancelledToast);
         router.refresh();
         return true;
       } finally {
         setBusyTaskId(null);
       }
     },
-    [router],
+    [router, lang, t],
   );
 
   return { busyTaskId, signUp, cancel };

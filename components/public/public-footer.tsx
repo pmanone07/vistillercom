@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { LegalLinks } from "@/components/legal-links";
+import { getMessages, PATHS, type Lang } from "@/lib/i18n";
 
-export function PublicFooter() {
+export function PublicFooter({ lang = "nb" }: { lang?: Lang }) {
+  const t = getMessages(lang).common;
   return (
     <footer className="px-4 py-6 pb-safe-bar text-center text-xs text-muted-foreground">
-      Laget med{" "}
-      <Link href="/" className="font-semibold text-foreground underline-offset-4 hover:underline">
+      {t.madeWith}{" "}
+      <Link href={PATHS[lang].home} className="font-semibold text-foreground underline-offset-4 hover:underline">
         ViStiller
       </Link>{" "}
-      – mindre organisering, mer fellesskap.
-      <LegalLinks className="mt-2" />
+      {t.footerTagline}
+      <LegalLinks lang={lang} className="mt-2" />
     </footer>
   );
 }

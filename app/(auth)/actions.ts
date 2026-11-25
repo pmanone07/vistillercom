@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { safeNext } from "@/lib/auth";
 import { AUTH_TEXT, isAuthLang, type AuthLang } from "@/lib/auth-i18n";
+import { PATHS } from "@/lib/i18n";
+import { getLang } from "@/lib/i18n-server";
 import { isSupabaseConfigured, siteUrl } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 
@@ -81,5 +83,5 @@ export async function signOut() {
     const supabase = await createClient();
     await supabase.auth.signOut();
   }
-  redirect("/");
+  redirect(PATHS[await getLang()].home);
 }

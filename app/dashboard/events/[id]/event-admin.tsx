@@ -26,15 +26,15 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { StaffingBar } from "@/components/staffing";
+import { useLang, useT } from "@/components/i18n-provider";
 import { formatEventWhen, formatTimeRange } from "@/lib/format";
+import type { Messages } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { EventRow, SignupRow, TaskWithSignups } from "@/lib/types";
 import { addSignup, deleteEvent, deleteTask, loadEventTasks, removeSignup, setEventStatus } from "../../actions";
 import { CopyDialog } from "./copy-dialog";
 import { ShareDialog } from "./share-dialog";
 import { TaskDialog, type TaskDraft } from "./task-dialog";
-
-const SUGGESTIONS = ["Bake kake", "Rigging", "Kafévakt", "Kioskvakt", "Rydding", "Kjøring", "Ta med kaffe"];
 
 interface Props {
   event: EventRow;
@@ -50,6 +50,9 @@ type Confirm =
 
 export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUrl }: Props) {
   const router = useRouter();
+  const lang = useLang();
+  const messages = useT();
+  const t = messages.event;
   const [shareOpen, setShareOpen] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
   const [taskDraft, setTaskDraft] = useState<TaskDraft | null>(null);
@@ -83,13 +86,13 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
           toast.error(result.error);
         }
       } catch {
-        if (manual) toast.error("Fikk ikke hentet listen. Sjekk nettforbindelsen.");
+        if (manual) toast.error(messages.errors.networkList);
       } finally {
         syncBusy.current = false;
         if (manual) setSyncing(false);
       }
     },
-    [event.id],
+    [event.id, messages],
   );
 
   // Henter ferske påmeldinger hvert 8. sekund, og med en gang fanen blir aktiv
@@ -118,18 +121,18 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
     const known = knownSignups.current;
     if (known) {
       const added = [...current.entries()].filter(([id]) => !known.has(id)).map(([, label]) => label);
-      if (added.length === 1) toast.success(`Ny påmelding: ${added[0]}`);
-      else if (added.length > 1) toast.success(`${added.length} nye påmeldinger`, { description: added.slice(0, 5).join(" · ") });
+      if (added.length === 1) toast.success(t.newSignup(added[0]));
+      else if (added.length > 1) toast.success(t.newSignups(added.length), { description: added.slice(0, 5).join(" · ") });
     }
     knownSignups.current = new Set(current.keys());
-  }, [tasks]);
+  }, [tasks, t]);
 
   const isOpen = event.status === "open";
   const capacity = tasks.reduce((sum, t) => sum + t.capacity, 0);
   const taken = tasks.reduce((sum, t) => sum + t.signups.length, 0);
   const understaffed = tasks.filter((t) => t.signups.length < t.capacity);
   const usedTitles = new Set(tasks.map((t) => t.title.toLowerCase()));
-  const suggestions = SUGGESTIONS.filter((s) => !usedTitles.has(s.toLowerCase()));
+  const suggestions = t.suggestions.filter((s) => !usedTitles.has(s.toLowerCase()));
 
   function toggleStatus() {
     startStatus(async () => {
@@ -138,7 +141,7 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
         toast.error(result.error);
         return;
       }
-      toast.success(isOpen ? "Påmeldingen er stengt" : "Påmeldingen er åpnet");
+      toast.success(isOpen ? t.signupClosed : t.signupOpened);
       router.refresh();
     });
   }
@@ -151,7 +154,7 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
         toast.error(result.error);
         return false;
       }
-      toast.success("Arrangementet er slettet");
+      toast.success(t.eventDeleted);
       router.push("/dashboard");
       router.refresh();
       return;
@@ -162,7 +165,7 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
       toast.error(result.error);
       return false;
     }
-    toast.success(confirm.kind === "delete-task" ? "Oppgaven er slettet" : "Personen er fjernet");
+    toast.success(confirm.kind === "delete-task" ? t.taskDeleted : t.personRemoved);
     router.refresh();
   }
 
@@ -170,12 +173,12 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
     <div className="space-y-6">
       <div>
         <Link href="/dashboard" className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="size-4" /> Alle arrangementer
+          <ArrowLeft className="size-4" /> {t.allEvents}
         </Link>
         <p className="text-sm font-medium text-muted-foreground">{organizationName}</p>
         <h1 className="text-2xl font-bold tracking-tight">{event.title}</h1>
         <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-          <CalendarDays className="size-4 shrink-0" aria-hidden /> {formatEventWhen(event.starts_at, event.ends_at)}
+          <CalendarDays className="size-4 shrink-0" aria-hidden /> {formatEventWhen(event.starts_at, event.ends_at, lang)}
         </p>
         {event.location && (
           <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -184,7 +187,7 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
         )}
         {event.signup_deadline && (
           <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Clock className="size-4 shrink-0" aria-hidden /> Påmeldingsfrist: {formatEventWhen(event.signup_deadline)}
+            <Clock className="size-4 shrink-0" aria-hidden /> {t.deadline} {formatEventWhen(event.signup_deadline, null, lang)}
           </p>
         )}
       </div>
@@ -192,7 +195,7 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
       {/* Viktigste handling først: del lenken. */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <Button onClick={() => setShareOpen(true)} className="col-span-2 h-12 text-base sm:col-span-1">
-          <Share2 /> Del
+          <Share2 /> {t.share}
         </Button>
         <a
           href={`/e/${event.public_slug}`}
@@ -200,43 +203,43 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
           rel="noopener"
           className={cn(buttonVariants({ variant: "outline" }), "h-12")}
         >
-          <ExternalLink /> Forhåndsvis
+          <ExternalLink /> {t.preview}
         </a>
         <Link href={`/dashboard/events/${event.id}/rediger`} className={cn(buttonVariants({ variant: "outline" }), "h-12")}>
-          <Pencil /> Rediger
+          <Pencil /> {t.edit}
         </Link>
         <Button variant="outline" onClick={() => setCopyOpen(true)} className="h-12 max-sm:col-span-2">
-          <Copy /> Kopier
+          <Copy /> {t.copy}
         </Button>
       </div>
 
       {!isOpen && (
         <div className="flex items-center gap-3 rounded-2xl bg-muted p-4 text-sm">
           <Lock className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-          <span>Påmeldingen er stengt. Deltakere kan se listen, men ikke melde seg på.</span>
+          <span>{t.closedNotice}</span>
         </div>
       )}
 
       {tasks.length > 0 && (
         <section className="rounded-2xl bg-background p-4 ring-1 ring-foreground/10">
-          <h2 className="mb-2 font-semibold">Bemanning</h2>
+          <h2 className="mb-2 font-semibold">{t.staffing}</h2>
           <StaffingBar taken={Math.min(taken, capacity)} capacity={capacity} />
           {understaffed.length > 0 ? (
             <p className="mt-3 text-sm text-muted-foreground">
-              Mangler fortsatt folk til:{" "}
+              {t.stillMissing}{" "}
               <span className="font-medium text-foreground">{understaffed.map((t) => t.title).join(", ")}</span>
             </p>
           ) : (
-            <p className="mt-3 text-sm font-medium text-emerald-700">Alle oppgavene er dekket. Takk til alle som stiller!</p>
+            <p className="mt-3 text-sm font-medium text-emerald-700">{t.allCovered}</p>
           )}
         </section>
       )}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">Oppgaver</h2>
+          <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">{t.tasks}</h2>
           <Button onClick={() => setTaskDraft({})} className="h-10">
-            <Plus /> Ny oppgave
+            <Plus /> {t.newTask}
           </Button>
         </div>
 
@@ -247,18 +250,18 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
               <span className="relative inline-flex size-2 rounded-full bg-emerald-600" />
             </span>
             {lastSynced
-              ? `Oppdateres automatisk · sist ${lastSynced.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
-              : "Oppdateres automatisk"}
+              ? t.autoUpdateAt(lastSynced.toLocaleTimeString(messages.locale, { hour: "2-digit", minute: "2-digit", second: "2-digit" }))
+              : t.autoUpdate}
           </p>
           <Button variant="outline" onClick={() => sync(true)} disabled={syncing} className="h-9">
-            <RefreshCw className={cn(syncing && "animate-spin")} /> Oppdater liste
+            <RefreshCw className={cn(syncing && "animate-spin")} /> {t.refresh}
           </Button>
         </div>
 
         {tasks.length === 0 && (
           <div className="rounded-2xl border border-dashed bg-background p-6 text-center">
-            <p className="font-semibold">Hva trenger dere hjelp til?</p>
-            <p className="mt-1 text-sm text-muted-foreground">Legg inn oppgavene, så kan folk melde seg på når du deler lenken.</p>
+            <p className="font-semibold">{t.emptyTitle}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t.emptyHint}</p>
           </div>
         )}
 
@@ -277,7 +280,7 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
 
         {suggestions.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-sm text-muted-foreground">Forslag:</span>
+            <span className="text-sm text-muted-foreground">{t.suggestionsLabel}</span>
             {suggestions.map((s) => (
               <button
                 key={s}
@@ -295,10 +298,10 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
       <section className="flex flex-wrap gap-2 border-t pt-5">
         <Button variant="outline" onClick={toggleStatus} disabled={statusPending} className="h-11">
           {statusPending ? <Loader2 className="animate-spin" /> : isOpen ? <Lock /> : <LockOpen />}
-          {isOpen ? "Steng påmeldingen" : "Åpne påmeldingen"}
+          {isOpen ? t.closeSignup : t.openSignup}
         </Button>
         <Button variant="destructive" onClick={() => setConfirm({ kind: "delete-event" })} className="h-11">
-          <Trash2 /> Slett arrangementet
+          <Trash2 /> {t.deleteEvent}
         </Button>
       </section>
 
@@ -310,34 +313,35 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
         onOpenChange={(open) => !open && setConfirm(null)}
         destructive
         onConfirm={runConfirm}
-        {...confirmText(confirm, event.title)}
+        {...confirmText(confirm, event.title, messages)}
       />
     </div>
   );
 }
 
-function confirmText(confirm: Confirm | null, eventTitle: string) {
+function confirmText(confirm: Confirm | null, eventTitle: string, messages: Messages) {
+  const t = messages.event;
   switch (confirm?.kind) {
     case "delete-event":
       return {
-        title: "Slette arrangementet?",
-        description: `«${eventTitle}» slettes med alle oppgaver og påmeldinger. Dette kan ikke angres.`,
-        confirmLabel: "Ja, slett",
+        title: t.confirmDeleteEvent,
+        description: t.confirmDeleteEventText(eventTitle),
+        confirmLabel: messages.common.yesDelete,
       };
     case "delete-task":
       return {
-        title: "Slette oppgaven?",
+        title: t.confirmDeleteTask,
         description:
           confirm.task.signups.length > 0
-            ? `«${confirm.task.title}» har ${confirm.task.signups.length} påmeldte. De fjernes også. Dette kan ikke angres.`
-            : `«${confirm.task.title}» fjernes fra arrangementet.`,
-        confirmLabel: "Ja, slett",
+            ? t.confirmDeleteTaskWith(confirm.task.title, confirm.task.signups.length)
+            : t.confirmDeleteTaskEmpty(confirm.task.title),
+        confirmLabel: messages.common.yesDelete,
       };
     case "remove-signup":
       return {
-        title: "Fjerne personen?",
-        description: `${confirm.signup.participant_name} fjernes fra «${confirm.taskTitle}», og plassen blir ledig igjen.`,
-        confirmLabel: "Ja, fjern",
+        title: t.confirmRemove,
+        description: t.confirmRemoveText(confirm.signup.participant_name, confirm.taskTitle),
+        confirmLabel: messages.common.yesRemove,
       };
     default:
       return { title: "", description: "", confirmLabel: "OK" };
@@ -356,10 +360,13 @@ function TaskCard({
   onRemoveSignup: (signup: SignupRow) => void;
 }) {
   const router = useRouter();
+  const lang = useLang();
+  const messages = useT();
+  const t = messages.event;
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
-  const time = formatTimeRange(task.starts_at, task.ends_at);
+  const time = formatTimeRange(task.starts_at, task.ends_at, lang);
 
   function add(e: React.FormEvent) {
     e.preventDefault();
@@ -388,10 +395,10 @@ function TaskCard({
           {task.description && <p className="mt-0.5 text-sm text-muted-foreground">{task.description}</p>}
         </div>
         <div className="flex shrink-0">
-          <Button variant="ghost" size="icon-lg" onClick={onEdit} aria-label={`Endre ${task.title}`}>
+          <Button variant="ghost" size="icon-lg" onClick={onEdit} aria-label={t.editTask(task.title)}>
             <Pencil />
           </Button>
-          <Button variant="ghost" size="icon-lg" onClick={onDelete} aria-label={`Slett ${task.title}`}>
+          <Button variant="ghost" size="icon-lg" onClick={onDelete} aria-label={t.deleteTask(task.title)}>
             <Trash2 />
           </Button>
         </div>
@@ -415,7 +422,7 @@ function TaskCard({
                 variant="ghost"
                 size="icon"
                 onClick={() => onRemoveSignup(signup)}
-                aria-label={`Fjern ${signup.participant_name}`}
+                aria-label={t.removePerson(signup.participant_name)}
                 className="shrink-0 text-muted-foreground"
               >
                 <X />
@@ -433,20 +440,20 @@ function TaskCard({
             maxLength={80}
             required
             autoFocus
-            placeholder="Navn"
-            aria-label={`Navn på person til ${task.title}`}
+            placeholder={messages.common.name}
+            aria-label={t.personName(task.title)}
             className="h-11 text-base"
           />
           <Button type="submit" disabled={pending || !name.trim()} className="h-11 shrink-0">
-            {pending && <Loader2 className="animate-spin" />} Legg til
+            {pending && <Loader2 className="animate-spin" />} {messages.common.add}
           </Button>
-          <Button type="button" variant="ghost" onClick={() => setAdding(false)} className="h-11 shrink-0" aria-label="Avbryt">
+          <Button type="button" variant="ghost" onClick={() => setAdding(false)} className="h-11 shrink-0" aria-label={messages.common.cancel}>
             <X />
           </Button>
         </form>
       ) : (
         <Button variant="ghost" onClick={() => setAdding(true)} className="mt-2 -ml-2 h-10 text-muted-foreground">
-          <UserPlus /> Legg til person selv
+          <UserPlus /> {t.addPerson}
         </Button>
       )}
     </article>

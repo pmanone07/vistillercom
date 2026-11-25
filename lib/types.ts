@@ -27,6 +27,8 @@ export interface EventRow {
   signup_deadline: string | null;
   public_slug: string;
   status: EventStatus;
+  /** Språket på deltakersiden. Mangler før migreringen 20261125 er kjørt. */
+  language?: "nb" | "en";
 }
 
 export interface TaskRow {
@@ -74,6 +76,8 @@ export interface PublicEvent {
   ends_at: string | null;
   signup_deadline: string | null;
   status: EventStatus;
+  /** Språket arrangementet ble laget på. Mangler før migreringen 20261125 er kjørt. */
+  language?: "nb" | "en";
   signup_open: boolean;
   organization_name: string;
   tasks: PublicTask[];

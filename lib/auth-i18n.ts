@@ -1,26 +1,16 @@
-// Tekster for innlogging og registrering på norsk og engelsk.
-// Resten av ViStiller (dashbord, arrangementer, juridiske sider) er bare på norsk.
-// Trygg å bruke både på serveren og i nettleseren.
+// Tekster for innlogging og registrering på norsk og engelsk. Resten av
+// tekstene ligger i lib/i18n.ts. Trygg å bruke både på serveren og i nettleseren.
 
-export type AuthLang = "nb" | "en";
+import { PATHS, type Lang } from "@/lib/i18n";
 
-/** Informasjonskapsel med språket brukeren valgte da appen ble åpnet. */
-export const LANG_COOKIE = "vistiller-lang";
-
-export function isAuthLang(value: unknown): value is AuthLang {
-  return value === "nb" || value === "en";
-}
+export { LANG_COOKIE, chooseLangHref, isLang as isAuthLang } from "@/lib/i18n";
+export type AuthLang = Lang;
 
 /** Hvor innlogging/registrering ligger for hvert språk. */
 export const AUTH_PATHS = {
-  nb: { login: "/login", register: "/registrer" },
-  en: { login: "/en/login", register: "/en/register" },
+  nb: { login: PATHS.nb.login, register: PATHS.nb.register },
+  en: { login: PATHS.en.login, register: PATHS.en.register },
 } as const;
-
-/** Lenke som lagrer språkvalget og sender brukeren videre (se app/sprak/route.ts). */
-export function chooseLangHref(lang: AuthLang, to: string) {
-  return `/sprak?lang=${lang}&to=${encodeURIComponent(to)}`;
-}
 
 export const AUTH_TEXT = {
   nb: {
@@ -35,6 +25,8 @@ export const AUTH_TEXT = {
     terms: "brukervilkårene",
     readAlso: ". Les også ",
     privacy: "personvernerklæringen",
+    termsHref: PATHS.nb.terms,
+    privacyHref: PATHS.nb.privacy,
     errors: {
       invalidEmail: "Skriv inn en gyldig e-postadresse.",
       shortPassword: "Passordet må ha minst 8 tegn.",
@@ -59,6 +51,8 @@ export const AUTH_TEXT = {
     terms: "terms of service",
     readAlso: ". Please also read the ",
     privacy: "privacy policy",
+    termsHref: PATHS.en.terms,
+    privacyHref: PATHS.en.privacy,
     errors: {
       invalidEmail: "Enter a valid email address.",
       shortPassword: "The password must be at least 8 characters.",

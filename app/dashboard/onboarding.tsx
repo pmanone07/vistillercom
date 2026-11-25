@@ -7,11 +7,13 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, bigInput } from "@/components/field";
-import { MEMBERSHIP, showPricing } from "@/lib/membership";
+import { useT } from "@/components/i18n-provider";
+import { showPricing } from "@/lib/membership";
 import { createOrganization } from "./actions";
 
 export function Onboarding() {
   const router = useRouter();
+  const t = useT().onboarding;
   const [name, setName] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -29,19 +31,13 @@ export function Onboarding() {
 
   return (
     <div className="mx-auto max-w-md rounded-2xl bg-background p-6 ring-1 ring-foreground/10">
-      <h1 className="text-xl font-bold">Velkommen til ViStiller</h1>
+      <h1 className="text-xl font-bold">{t.welcome}</h1>
       <p className="mt-1 mb-5 text-sm text-muted-foreground">
-        Hvem arrangerer du for? Navnet vises til dem som melder seg på.
-        {showPricing && (
-          <>
-            {" "}
-            Medlemskapet ({MEMBERSHIP.priceLabel} {MEMBERSHIP.intervalLabel}, {MEMBERSHIP.vatLabel}) gjelder denne
-            organisasjonen, og betales i neste steg.
-          </>
-        )}
+        {t.intro}
+        {showPricing && <> {t.membership}</>}
       </p>
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Skole, lag, korps eller gruppe" htmlFor="org-name" hint="For eksempel «Strindheim skole FAU» eller «Ranheim IL».">
+        <Field label={t.label} htmlFor="org-name" hint={t.hint}>
           <Input
             id="org-name"
             value={name}
@@ -54,7 +50,7 @@ export function Onboarding() {
         </Field>
         <Button type="submit" disabled={pending || !name.trim()} className="h-12 w-full text-base">
           {pending && <Loader2 className="animate-spin" />}
-          Fortsett
+          {t.continue}
         </Button>
       </form>
     </div>

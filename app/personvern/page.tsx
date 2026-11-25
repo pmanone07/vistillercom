@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalPage, Section } from "@/components/legal-page";
+import { LegalPage, Section, Toc } from "@/components/legal-page";
 import { CONTACT_EMAIL, CONTROLLER_NAME, PRIVACY_UPDATED, privacyMailto } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Personvernerklæring",
   description: "Hvilke personopplysninger ViStiller behandler, hvorfor, hvem som hjelper oss, og hvilke rettigheter du har.",
-  alternates: { canonical: "/personvern" },
+  alternates: { canonical: "/personvern", languages: { nb: "/personvern", en: "/en/privacy" } },
 };
 
 // Teksten beskriver det koden faktisk gjør. Endrer du hva som lagres, hvem som
@@ -38,6 +38,7 @@ export default function PrivacyPage() {
     <LegalPage
       title="Personvernerklæring"
       updated={PRIVACY_UPDATED}
+      page="privacy"
       intro={
         <p>
           ViStiller hjelper skoler, FAU, idrettslag, korps og andre frivillige med å organisere dugnader og
@@ -46,18 +47,7 @@ export default function PrivacyPage() {
         </p>
       }
     >
-      <nav aria-label="Innhold" className="mb-8 rounded-xl bg-muted/60 p-4">
-        <p className="text-sm font-semibold">Innhold</p>
-        <ol className="mt-2 grid list-decimal gap-x-6 gap-y-1 pl-5 text-sm sm:grid-cols-2">
-          {toc.map(([id, label]) => (
-            <li key={id}>
-              <a href={`#${id}`} className="text-primary underline-offset-4 hover:underline">
-                {label}
-              </a>
-            </li>
-          ))}
-        </ol>
-      </nav>
+      <Toc items={toc} label="Innhold" />
 
       <Section id="ansvarlig" title="1. Hvem som er ansvarlig">
         <p>
@@ -78,7 +68,9 @@ export default function PrivacyPage() {
           <li>Vi samler bare inn det som trengs for å organisere dugnader og arrangementer.</li>
           <li>Deltakere trenger ikke konto. Navn er nok, og e-post er valgfritt.</li>
           <li>Vi bruker ikke reklame, sporing eller analyseverktøy, og vi selger aldri opplysninger.</li>
-          <li>Vi bruker bare informasjonskapsler som trengs for å holde deg innlogget.</li>
+          <li>
+            Vi bruker bare informasjonskapsler som trengs for å holde deg innlogget og huske språket du har valgt.
+          </li>
           <li>Du kan når som helst slette kontoen din selv i appen.</li>
         </ul>
       </Section>
@@ -100,7 +92,7 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Arrangementer og oppgaver:</strong> det du skriver inn, som tittel, beskrivelse, sted, tidspunkt,
-            frist og antall plasser, og hvem som opprettet arrangementet.
+            frist, antall plasser og språk, og hvem som opprettet arrangementet.
           </li>
           <li>
             <strong>Medlemskap og betaling:</strong> vi lagrer en kunde-ID og abonnements-ID fra betalingsleverandøren
@@ -253,6 +245,10 @@ export default function PrivacyPage() {
           <li>
             <strong>Innloggingscookies</strong> (navn som begynner med <code>sb-</code>) settes når du logger inn som
             arrangør. De holder deg innlogget og slettes når du logger ut.
+          </li>
+          <li>
+            <strong>Språkvalg</strong> (<code>vistiller-lang</code>) settes når du velger norsk eller engelsk. Den
+            husker bare språket, inneholder ingen personopplysninger og slettes automatisk etter ett år.
           </li>
           <li>
             <strong>Lokal lagring på enheten</strong> (localStorage): når du melder deg på som deltaker, lagres den

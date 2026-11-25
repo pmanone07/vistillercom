@@ -3,6 +3,7 @@
 import { Check, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StaffingBar } from "@/components/staffing";
+import { useLang, useT } from "@/components/i18n-provider";
 import { formatTimeRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PublicTask } from "@/lib/types";
@@ -20,8 +21,10 @@ interface Props {
 
 /** Oppgavekort for deltakere: hva, når, hvor mange, hvem – og én stor knapp. */
 export function TaskCard({ task, mine, signupOpen, busy, onSignUp, onCancel }: Props) {
+  const lang = useLang();
+  const t = useT().public;
   const full = task.taken >= task.capacity;
-  const time = formatTimeRange(task.starts_at, task.ends_at);
+  const time = formatTimeRange(task.starts_at, task.ends_at, lang);
 
   return (
     <article
@@ -42,7 +45,7 @@ export function TaskCard({ task, mine, signupOpen, busy, onSignUp, onCancel }: P
         </div>
         {mine && (
           <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary px-2.5 py-1 text-xs font-semibold text-primary-foreground">
-            <Check className="size-3.5" aria-hidden /> Du stiller
+            <Check className="size-3.5" aria-hidden /> {t.youreIn}
           </span>
         )}
       </div>
@@ -51,7 +54,7 @@ export function TaskCard({ task, mine, signupOpen, busy, onSignUp, onCancel }: P
 
       {task.names.length > 0 && (
         <p className="mt-2 text-sm text-muted-foreground">
-          <span className="sr-only">Påmeldt: </span>
+          <span className="sr-only">{t.signedUpAria}</span>
           {task.names.join(", ")}
         </p>
       )}
@@ -59,13 +62,13 @@ export function TaskCard({ task, mine, signupOpen, busy, onSignUp, onCancel }: P
       <div className="mt-3">
         {mine ? (
           <Button variant="outline" onClick={onCancel} disabled={busy} className="h-11 w-full">
-            {busy && <Loader2 className="animate-spin" />} Meld meg av
+            {busy && <Loader2 className="animate-spin" />} {t.signOff}
           </Button>
         ) : !signupOpen ? null : full ? (
-          <p className="text-sm font-medium text-emerald-700">Denne er dekket – takk!</p>
+          <p className="text-sm font-medium text-emerald-700">{t.covered}</p>
         ) : (
           <Button onClick={onSignUp} disabled={busy} className="h-12 w-full text-base">
-            {busy && <Loader2 className="animate-spin" />} Meld meg på
+            {busy && <Loader2 className="animate-spin" />} {t.signUp}
           </Button>
         )}
       </div>
