@@ -7,8 +7,8 @@ const AUTH_PAGES = new Set<string>([...Object.values(AUTH_PATHS.nb), ...Object.v
 
 // Fornyer Supabase-økten og sender ikke-innloggede bort fra dashbordet.
 // /start er inngangen til appene (Capacitor og PWA): innloggede går rett til
-// dashbordet. Andre velger språk første gang (/velg-sprak), og får deretter
-// forsiden (norsk) eller den engelske innloggingen.
+// dashbordet, andre får forsiden med informasjon om ViStiller. Øverst på
+// forsiden velger de språk for innlogging og registrering (norsk/English).
 // Selve tilgangskontrollen ligger i RLS og i requireUser() – dette er bare
 // en rask første sjekk.
 export async function proxy(request: NextRequest) {
@@ -38,14 +38,10 @@ export async function proxy(request: NextRequest) {
   // en måte skjemaet forstår. En omdirigering her gir «unexpected response».
   if (request.method !== "GET" && request.method !== "HEAD") return response;
 
-  // Språket brukeren valgte ved første åpning (/velg-sprak). Gjelder bare innlogging og registrering.
+  // Språket brukeren sist valgte (forsiden eller språkknappen). Gjelder bare innlogging og registrering.
   const lang = request.cookies.get(LANG_COOKIE)?.value;
 
-  if (pathname === "/start") {
-    if (data.user) return redirectTo(request, "/dashboard");
-    if (lang === "en") return redirectTo(request, AUTH_PATHS.en.login);
-    return redirectTo(request, lang === "nb" ? "/" : "/velg-sprak");
-  }
+  if (pathname === "/start") return redirectTo(request, data.user ? "/dashboard" : "/");
   if (!data.user && pathname.startsWith("/dashboard")) {
     const url = request.nextUrl.clone();
     url.pathname = lang === "en" ? AUTH_PATHS.en.login : AUTH_PATHS.nb.login;

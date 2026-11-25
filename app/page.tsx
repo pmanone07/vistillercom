@@ -3,6 +3,7 @@ import { ClipboardList, GraduationCap, HeartHandshake, Link2, Music, Trophy, Use
 import { buttonVariants } from "@/components/ui/button";
 import { StickyPages, type StickyPageItem } from "@/components/ui/sticky-pages";
 import { Logo } from "@/components/logo";
+import { LangPicker } from "@/components/lang-picker";
 import { LegalLinks } from "@/components/legal-links";
 import { MEMBERSHIP, showPricing } from "@/lib/membership";
 import { cn } from "@/lib/utils";
@@ -41,9 +42,12 @@ const pages: StickyPageItem[] = [
       <div className="flex h-full flex-col">
         <header className="mx-auto flex h-16 w-full max-w-5xl shrink-0 items-center justify-between px-5 pt-safe">
           <Logo />
-          <Link href="/login" className={cn(buttonVariants({ variant: "ghost" }), "h-10 px-4")}>
-            Logg inn
-          </Link>
+          <div className="flex items-center gap-2">
+            <LangPicker />
+            <Link href="/login" className={cn(buttonVariants({ variant: "ghost" }), "h-10 px-3 sm:px-4")}>
+              Logg inn
+            </Link>
+          </div>
         </header>
         <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-5 pb-10 text-center">
           <p className="mb-4 rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
