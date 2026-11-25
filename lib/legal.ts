@@ -4,7 +4,7 @@
 export const CONTROLLER_NAME = "";
 
 /** Adressen for personvernspørsmål og slettebegjæringer. Vises offentlig. */
-export const CONTACT_EMAIL = "the.pman07@gmail.com";
+export const CONTACT_EMAIL = "SaaSsy@gmail.com";
 
 // Oppdater begge språk samtidig når teksten endres.
 export const PRIVACY_UPDATED = "25. november 2026";
