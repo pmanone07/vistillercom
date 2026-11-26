@@ -7,8 +7,8 @@ export const CONTROLLER_NAME = "";
 export const CONTACT_EMAIL = "SaaSsy@gmail.com";
 
 // Oppdater begge språk samtidig når teksten endres.
-export const PRIVACY_UPDATED = "25. november 2026";
-export const PRIVACY_UPDATED_EN = "25 November 2026";
+export const PRIVACY_UPDATED = "26. november 2026";
+export const PRIVACY_UPDATED_EN = "26 November 2026";
 export const TERMS_UPDATED = "22. november 2026";
 export const TERMS_UPDATED_EN = "22 November 2026";
 

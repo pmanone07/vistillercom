@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { ServiceWorker } from "@/components/service-worker";
+import { Analytics } from "@/components/analytics";
 import { siteUrl } from "@/lib/supabase/env";
 import "./globals.css";
 
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <Toaster theme="light" position="top-center" />
         <ServiceWorker />
+        <Analytics />
       </body>
     </html>
   );

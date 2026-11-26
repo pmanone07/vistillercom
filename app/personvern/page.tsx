@@ -67,7 +67,8 @@ export default function PrivacyPage() {
         <ul>
           <li>Vi samler bare inn det som trengs for å organisere dugnader og arrangementer.</li>
           <li>Deltakere trenger ikke konto. Navn er nok, og e-post er valgfritt.</li>
-          <li>Vi bruker ikke reklame, sporing eller analyseverktøy, og vi selger aldri opplysninger.</li>
+          <li>Vi bruker ikke reklame eller sporing, og vi selger aldri opplysninger.</li>
+          <li>Vi teller besøk anonymt, uten cookies, for å se hvilke sider som brukes.</li>
           <li>
             Vi bruker bare informasjonskapsler som trengs for å holde deg innlogget og huske språket du har valgt.
           </li>
@@ -120,6 +121,12 @@ export default function PrivacyPage() {
             Når du åpner nettsiden eller appen, registrerer serverne tekniske opplysninger som IP-adresse, tidspunkt,
             adressen som ble åpnet og nettlesertype. Disse brukes til drift, feilsøking og sikkerhet.
           </li>
+          <li>
+            <strong>Besøksstatistikk:</strong> vi bruker Vercel Web Analytics til å telle sidevisninger. Den registrerer
+            hvilken side som ble åpnet, hvilken side du kom fra, land, nettleser, operativsystem og type enhet. Den
+            bruker ingen cookies og lagrer ikke IP-adressen. Statistikken viser bare tall for alle besøkende samlet, og
+            vi kan ikke se hvem som har besøkt siden. Den personlige koden i påmeldingslenker fjernes før noe sendes.
+          </li>
         </ul>
         <p>
           Vi ber ikke om fødselsnummer, adresse, telefonnummer, posisjon eller andre sensitive opplysninger. Skriv
@@ -144,7 +151,8 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Drift, sikkerhet og misbruk.</strong> Vi bruker logger og tekniske data for å holde tjenesten
-            stabil og trygg. Grunnlaget er vår berettigede interesse (bokstav f).
+            stabil og trygg, og anonym besøksstatistikk for å forbedre den. Grunnlaget er vår berettigede interesse
+            (bokstav f).
           </li>
         </ul>
         <p>
@@ -182,8 +190,8 @@ export default function PrivacyPage() {
             gjelder kontoen, for eksempel for å bekrefte e-postadressen. Databasen ligger i et datasenter i EU.
           </li>
           <li>
-            <strong>Vercel</strong> (Vercel Inc., USA) drifter nettsiden og serverne som appen kobler seg til.
-            Forespørsler kan bli behandlet i Vercels nettverk utenfor EU/EØS.
+            <strong>Vercel</strong> (Vercel Inc., USA) drifter nettsiden og serverne som appen kobler seg til, og
+            lager besøksstatistikken. Forespørsler kan bli behandlet i Vercels nettverk utenfor EU/EØS.
           </li>
           <li>
             <strong>Stripe</strong> (Stripe Payments Europe Ltd., Irland) tar imot betaling for medlemskap. Stripe er

@@ -72,7 +72,8 @@ export default function PrivacyPageEn() {
         <ul>
           <li>We only collect what is needed to organize volunteer work and events.</li>
           <li>Participants don&apos;t need an account. A name is enough, and email is optional.</li>
-          <li>We don&apos;t use advertising, tracking or analytics tools, and we never sell data.</li>
+          <li>We don&apos;t use advertising or tracking, and we never sell data.</li>
+          <li>We count visits anonymously, without cookies, to see which pages are used.</li>
           <li>We only use cookies that are needed to keep you logged in and remember the language you chose.</li>
           <li>You can delete your account yourself in the app at any time.</li>
         </ul>
@@ -123,6 +124,12 @@ export default function PrivacyPageEn() {
             When you open the website or the app, the servers record technical data such as IP address, time, the
             address that was opened and browser type. This is used for operations, troubleshooting and security.
           </li>
+          <li>
+            <strong>Visitor statistics:</strong> we use Vercel Web Analytics to count page views. It records which page
+            was opened, which page you came from, country, browser, operating system and device type. It uses no
+            cookies and doesn&apos;t store your IP address. The statistics only show totals for all visitors, and we
+            can&apos;t see who visited. The personal code in sign-up links is removed before anything is sent.
+          </li>
         </ul>
         <p>
           We don&apos;t ask for national ID numbers, home addresses, phone numbers, location or other sensitive data.
@@ -147,7 +154,8 @@ export default function PrivacyPageEn() {
           </li>
           <li>
             <strong>Operations, security and misuse.</strong> We use logs and technical data to keep the service stable
-            and secure. The legal basis is our legitimate interest (point f).
+            and secure, and anonymous visitor statistics to improve it. The legal basis is our legitimate interest
+            (point f).
           </li>
         </ul>
         <p>
@@ -185,7 +193,8 @@ export default function PrivacyPageEn() {
             account, for example to confirm your email address. The database is located in a data centre in the EU.
           </li>
           <li>
-            <strong>Vercel</strong> (Vercel Inc., USA) hosts the website and the servers the app connects to. Requests
+            <strong>Vercel</strong> (Vercel Inc., USA) hosts the website and the servers the app connects to, and
+            produces the visitor statistics. Requests
             may be processed in Vercel&apos;s network outside the EU/EEA.
           </li>
           <li>
