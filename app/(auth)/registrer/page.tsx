@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   description: showPricing
     ? `ViStiller for arrangører: ${MEMBERSHIP.priceLabel} ${MEMBERSHIP.intervalLabel} ${MEMBERSHIP.unitLabel}, ${MEMBERSHIP.vatLabel}. Deltakere melder seg på gratis.`
     : "Opprett en ViStiller-konto og organiser dugnader og arrangementer. Deltakere melder seg på uten konto.",
+  alternates: { canonical: "/registrer", languages: { nb: "/registrer", en: "/en/register" } },
 };
 
 const steps = [

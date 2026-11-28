@@ -4,7 +4,10 @@ import { LangSwitch } from "@/components/lang-switch";
 import { AUTH_PATHS } from "@/lib/auth-i18n";
 import { AuthForm } from "../auth-form";
 
-export const metadata: Metadata = { title: "Logg inn" };
+export const metadata: Metadata = {
+  title: "Logg inn",
+  alternates: { canonical: "/login", languages: { nb: "/login", en: "/en/login" } },
+};
 
 export default function LoginPage() {
   return (
