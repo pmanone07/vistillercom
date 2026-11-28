@@ -9,7 +9,7 @@ import {
   CalendarDays,
   Clock,
   Copy,
-  ExternalLink,
+  Eye,
   Loader2,
   Lock,
   LockOpen,
@@ -197,14 +197,13 @@ export function EventAdmin({ event, organizationName, tasks: serverTasks, siteUr
         <Button onClick={() => setShareOpen(true)} className="col-span-2 h-12 text-base sm:col-span-1">
           <Share2 /> {t.share}
         </Button>
-        <a
-          href={`/e/${event.public_slug}`}
-          target="_blank"
-          rel="noopener"
+        {/* Samme vindu (også i appen), med en «Tilbake til appen»-linje øverst. */}
+        <Link
+          href={`/e/${event.public_slug}?preview=${event.id}`}
           className={cn(buttonVariants({ variant: "outline" }), "h-12")}
         >
-          <ExternalLink /> {t.preview}
-        </a>
+          <Eye /> {t.preview}
+        </Link>
         <Link href={`/dashboard/events/${event.id}/rediger`} className={cn(buttonVariants({ variant: "outline" }), "h-12")}>
           <Pencil /> {t.edit}
         </Link>

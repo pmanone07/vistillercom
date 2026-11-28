@@ -371,6 +371,9 @@ const nb = {
   },
   public: {
     loading: "Laster arrangementet",
+    previewLabel: "Forhåndsvisning",
+    previewNotice: "Forhåndsvisning – slik ser deltakerne siden.",
+    backToApp: "Tilbake til appen",
     metaDescription: (org: string, when: string) => `${org} · ${when}. Se hva som trengs, og meld deg på.`,
     deadline: "Påmeldingsfrist:",
     deadlinePassed: "Påmeldingsfristen har gått ut.",
@@ -778,6 +781,9 @@ const en: Messages = {
   },
   public: {
     loading: "Loading the event",
+    previewLabel: "Preview",
+    previewNotice: "Preview – this is what participants see.",
+    backToApp: "Back to the app",
     metaDescription: (org: string, when: string) => `${org} · ${when}. See what's needed and sign up.`,
     deadline: "Sign-up deadline:",
     deadlinePassed: "The sign-up deadline has passed.",

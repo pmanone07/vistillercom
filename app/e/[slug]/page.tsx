@@ -13,6 +13,7 @@ import { getChosenLang } from "@/lib/i18n-server";
 import { getPublicEvent } from "@/lib/public-data";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import type { PublicEvent } from "@/lib/types";
+import { PreviewBar } from "./preview-bar";
 import { PublicEventView } from "./public-event-view";
 
 /** Deltakerens eget valg, ellers språket arrangementet ble laget på. */
@@ -36,12 +37,12 @@ export async function generateMetadata({ params }: PageProps<"/e/[slug]">): Prom
   };
 }
 
-export default function PublicEventPage({ params }: PageProps<"/e/[slug]">) {
+export default function PublicEventPage({ params, searchParams }: PageProps<"/e/[slug]">) {
   return (
     <div className="flex flex-1 flex-col bg-muted/40">
       {isSupabaseConfigured ? (
         <Suspense fallback={<EventSkeleton />}>
-          <Loader params={params} />
+          <Loader params={params} searchParams={searchParams} />
         </Suspense>
       ) : (
         <>
@@ -64,15 +65,21 @@ async function DynamicMarker() {
   return null;
 }
 
-async function Loader({ params }: Pick<PageProps<"/e/[slug]">, "params">) {
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function Loader({ params, searchParams }: Pick<PageProps<"/e/[slug]">, "params" | "searchParams">) {
   const { slug } = await params;
+  // ?preview=<arrangements-id> settes av «Forhåndsvis» i appen.
+  const preview = (await searchParams).preview;
+  const previewId = typeof preview === "string" && UUID.test(preview) ? preview : null;
   await connection(); // ledige plasser skal alltid være ferske
   const event = await getPublicEvent(slug);
   if (!event) notFound();
   const lang = await eventLang(event);
-  const here = `/e/${event.slug}`;
+  const here = `/e/${event.slug}${previewId ? `?preview=${previewId}` : ""}`;
   return (
     <LangProvider lang={lang}>
+      {previewId && <PreviewBar backHref={`/dashboard/events/${previewId}`} />}
       <main lang={lang === "en" ? "en" : undefined} className="mx-auto w-full max-w-xl flex-1 px-4 pt-4 pb-10 sm:pt-8">
         <div className="mb-3 flex justify-end">
           <LangPicker current={lang} to={{ nb: here, en: here }} />
